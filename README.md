@@ -1,57 +1,57 @@
-# RORBOCK - Pipe Bending Calculator
+# RÖRBOCK - Pipe Bending Calculator
 
-Denna app ar ett en-filsverktyg for praktisk rorbojning (koppar/stal) med fokus pa markning, kaplangd och montagelogik.
+Denna app är ett en-filsverktyg för praktisk rörböjning (koppar/stål) med fokus på märkning, kaplängd och montagelogik.
 
-Kallfil: pipe-bender.html
+Källfil: pipe-bender.html
 Publicerad startsida: index.html
 
 ## Syfte
 
-Minska fel vid matning, markning och bojning genom att:
-- Rakna ut kaplangd och markpositioner konsekvent.
+Minska fel vid mätning, märkning och böjning genom att:
+- Räkna ut kaplängd och markpositioner konsekvent.
 - Visa stegvis arbetsordning.
 - Hantera verktygsskillnader (Fromax/manuell) och empiriska avdrag.
-- Visualisera geometri i 2D och 3D dar det hjalper montoren.
+- Visualisera geometri i 2D och 3D där det hjälper montören.
 
 ## Flikar och funktion
 
-1. Bananboj
-- Enkel offsetboj mellan T-koppling och H-stycke.
-- Stoder fri geometri (D+H -> alfa) och vinkellage (alfa -> H).
-- Ger kaplangd, M1, bojvinkel, snedlangd och arbetsordning.
+1. Bananböj
+- Enkel offsetböj mellan T-koppling och H-stycke.
+- Stöder fri geometri (D+H -> alfa) och vinkelläge (alfa -> H).
+- Ger kaplängd, M1, böjvinkel, snedlängd och arbetsordning.
 
-2. Flerboj
-- Sekventiell markning for flera bojar i samma ror.
-- Kumulativ kompensation med bojavdrag per boj.
-- Stod for stocklangd och skarvmuff-laning utan att flytta grundmarkerna.
+2. Flerböj
+- Sekventiell märkning för flera böjar i samma rör.
+- Kumulativ kompensation med böjavdrag per böj.
+- Stöd för stocklängd och skarvmuff-lösning utan att flytta grundmarkerna.
 
-3. S-boj
-- Parallelforskjutning med tva bojar.
-- Varningar om orimlig geometri (for kort axial stracka).
+3. S-böj
+- Parallelförskjutning med två böjar.
+- Varningar om orimlig geometri (för kort axial sträcka).
 
 4. Svanbock
-- Tre bojar med mittdel och hojdkrav.
-- Varningar for negativ/for kort mittdel.
+- Tre böjar med mittdel och höjdkrav.
+- Varningar för negativ/för kort mittdel.
 
 5. Takoffset
-- S-boj mot takkrav (h1 till h2).
-- Geometrikontroller och varningar for tranga lagen.
+- S-böj mot takkrav (h1 till h2).
+- Geometrikontroller och varningar för trånga lägen.
 
-6. Takror 90 grader
-- Tre 90-gradersbojar upp genom tak.
+6. Takrör 90 grader
+- Tre 90-gradersböjar upp genom tak.
 - Frontvy, sidovy, isometrisk/perspektiv och 3D-preview.
 
-## Berakningslogik (harledning)
+## Beräkningslogik (härledning)
 
-### Bananboj - huvudformel
+### Bananböj - huvudformel
 
-Kaplangd:
+Kaplängd:
 
 ```
 kapa = M1 + L + instA - bendDeduction
 ```
 
-Dar:
+Där:
 
 ```
 bendDeduction = CLR * (1 - cos(alfa))
@@ -68,9 +68,9 @@ L          = sqrt(D^2 + riseOfDiag^2)
 ```
 
 Viktig referens:
-- M1 mats fran H-stycke-anden (overkant), inte fran T-sidan.
+- M1 mäts från H-stycke-änden (överkant), inte från T-sidan.
 
-### Flerboj - markalgoritm
+### Flerböj - markalgoritm
 
 ```
 mark[0] = segment[0]
@@ -78,12 +78,12 @@ mark[i] = mark[i-1] + segment[i] - bend_deduction, i > 0
 total   = mark[last]
 ```
 
-Prioritet for bojavdrag:
+Prioritet för böjavdrag:
 1. Manuell override (om ifylld)
-2. Empiriskt varde vid Fromax + 90 grader
-3. CLR-formel for ovriga fall
+2. Empiriskt värde vid Fromax + 90 grader
+3. CLR-formel för övriga fall
 
-### Stocklangd och skarv
+### Stocklängd och skarv
 
 ```
 overflow     = total - stock
@@ -92,7 +92,7 @@ pipe2_length = overflow - coupling_net
 ```
 
 Regel:
-- Skarvlosning far inte skriva om grundmarkerna, bara visa hur markerna mappas till pjas 1/pjas 2.
+- Skarvlösning får inte skriva om grundmarkerna, bara visa hur markerna mappas till pjäs 1/pjäs 2.
 
 ## Fasta verktygsdata
 
@@ -108,33 +108,33 @@ Fromax CLR-tabell:
 | 18 | 72 |
 | 22 | 110 |
 
-Empiriskt 90-graders bojavdrag:
+Empiriskt 90-graders böjavdrag:
 
 | Diameter | Avdrag |
 |---|---|
 | 12 | 19 mm |
-| 15 | 27 mm (uppskattat, ej uppmatt) |
+| 15 | 27 mm (uppskattat, ej uppmätt) |
 
 ## Spårbarhet: krav -> implementation
 
-Nedan visas hur krav kan harledas till konkreta delar i appen.
+Nedan visas hur krav kan härledas till konkreta delar i appen.
 
 | Krav | UI-beteende | Kodansvar |
 |---|---|---|
-| D far ej andras av inside/outside | Mätlage andrar bara visad hojdtext | calculate(...), measureMode-logik |
-| M1 ska vara entydig referens | Texter och arbetsordning visar H-stycke-ande/overkant | Bananboj input + workflow/formeltext |
-| Fjädring ska vara justerbar | Falt "Fjädringstillägg" i Bananboj | calculate(...), springback-inlasning |
-| 90 grader Fromax ska vara empirisk | Auto-avdrag i Flerboj/S-boj/Svanbock/Takoffset | MB_EMPIRICAL_90 + respektive calculate-funktion |
-| 15 mm empirisk osakerhet ska synas | Röd varningstext i Flerboj avdragsbadge | mbUpdateDeductBadge() |
-| L/R ska tolkas i färdriktning | Textforandring i riktningskolumn + legend i diagram | mb-seg-header + mbDrawDiagram() |
-| Overflow ska hanteras utan att forstora markerna | Varnar och visar pjas 1/pjas 2 med skarv | mbCheckOverflow() |
+| D får ej ändras av inside/outside | Mätläge ändrar bara visad höjdtext | calculate(...), measureMode-logik |
+| M1 ska vara entydig referens | Texter och arbetsordning visar H-stycke-ände/överkant | Bananböj input + workflow/formeltext |
+| Fjädring ska vara justerbar | Fält "Fjädringstillägg" i Bananböj | calculate(...), springback-inläsning |
+| 90 grader Fromax ska vara empirisk | Auto-avdrag i Flerböj/S-böj/Svanbock/Takoffset | MB_EMPIRICAL_90 + respektive calculate-funktion |
+| 15 mm empirisk osäkerhet ska synas | Röd varningstext i Flerböj avdragsbadge | mbUpdateDeductBadge() |
+| L/R ska tolkas i färdriktning | Textförändring i riktningskolumn + legend i diagram | mb-seg-header + mbDrawDiagram() |
+| Overflow ska hanteras utan att förstöra markerna | Varnar och visar pjäs 1/pjäs 2 med skarv | mbCheckOverflow() |
 
 ## Releasehistorik
 
 Version v0.4.3:
 - Refactor: central `projectPoint()` funktion för konsekvent z-inversion i side-view
 - Side-view (Visa från sidan): 45° roterad vänster för bättre perspektiv
-- Side-view: spegelvänd perspektiv (X och Y inverterade) för "bakom"-vy
+- Side-view: spegelvänt perspektiv (X och Y inverterade) för "bakom"-vy
 - Versionstring i header uppdaterad till v0.4.3
 
 Version v0.4.2:
@@ -144,48 +144,48 @@ Version v0.4.2:
 - Side-view depth direction: negerad z i isoProj för korrekt djupframställning
 
 Version v0.4.1:
-- Isometrisk flerboj-vy har separat visualisering for riktningslogik.
-- Segment i isometrisk vy ar fargkodade efter nasta bojriktning (L/R).
-- Nytt U-bocklage med forval R-L-R for snabbstart.
-- Toggle for referenssystem i isometrisk vy:
-	- Folj roret framat (rormokarlogik)
-	- Visa fran sidan (visuell/debug)
-- Follow-pipe camera i travel-lage.
+- Isometrisk flerböj-vy har separat visualisering för riktningslogik.
+- Segment i isometrisk vy är färgkodade efter nästa böjriktning (L/R).
+- Nytt U-bockläge med förval R-L-R för snabbstart.
+- Toggle för referenssystem i isometrisk vy:
+	- Följ röret framåt (rörmokarlogik)
+	- Visa från sidan (visuell/debug)
+- Follow-pipe camera i travel-läge.
 - Auto-zoom fix i isometrisk vy:
 	- padding runt extents
 	- minimum spread
-	- centrering pa START->SLUT
-- Centerlinje-referens och netto sidoforskjutning visas i isometrisk vy.
+	- centrering på START->SLUT
+- Centerlinje-referens och netto sidoförskjutning visas i isometrisk vy.
 
 Version v0.4:
-- Enhetlig M1-referens i Bananboj: H-stycke-ande (overkant).
-- Nytt falt for justerbar fjadringstillagg (grader).
-- Arbetsordning fortydligad med bojriktning (mot/fran vagg nar underlag finns).
-- Marktabell i Bananboj visar fjadring som faktisk parameter.
-- Flerboj visar tydlig varning att 15 mm empiriskt varde ar uppskattat.
+- Enhetlig M1-referens i Bananböj: H-stycke-ände (överkant).
+- Nytt fält för justerbar fjädringstillägg (grader).
+- Arbetsordning förtydligad med böjriktning (mot/från vägg när underlag finns).
+- Marktabell i Bananböj visar fjädring som faktisk parameter.
+- Flerböj visar tydlig varning att 15 mm empiriskt värde är uppskattat.
 
 ## Spårning av ändringar
 
-For att halla track pa allt i projektet anvands denna rutin:
+För att hålla track på allt i projektet används denna rutin:
 - Versionsnummer i appheadern (index.html och pipe-bender.html).
 - Releasehistorik i denna README (detta avsnitt).
-- En commit per logisk andring (kort, tydligt meddelande).
+- En commit per logisk ändring (kort, tydligt meddelande).
 - Git-tag per release (exempel: v0.4.1).
 
-## Verifiering och anvandning
+## Verifiering och användning
 
-Lokal korning:
-- Oppna index.html i webblasare, eller
-- Starta enkel server om behov finns for testning.
+Lokal körning:
+- Öppna index.html i webbläsare, eller
+- Starta enkel server om behov finns för testning.
 
-Praktisk verifiering pa jobb:
-- Verifiera alltid med provmontering innan slutkap vid tranga toleranser.
-- Kalibrera mot dagens material/verktyg om flera identiska bojar ska goras.
-- Anvand H-stycke-ande som konsekvent nollreferens for M1 i Bananboj.
+Praktisk verifiering på jobb:
+- Verifiera alltid med provmontering innan slutkap vid trånga toleranser.
+- Kalibrera mot dagens material/verktyg om flera identiska böjar ska göras.
+- Använd H-stycke-ände som konsekvent nollreferens för M1 i Bananböj.
 
 ## Tekniskt
 
 - En fil: HTML + CSS + JS i samma dokument.
 - Ingen build, inga runtime-ramverk.
 - SVG-rendering sker via JavaScript.
-- 3D-preview anvander Zdog med fallback-laddning.
+- 3D-preview använder Zdog med fallback-laddning.
