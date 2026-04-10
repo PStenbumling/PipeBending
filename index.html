@@ -2614,11 +2614,12 @@ function mbDrawIsoDiagram(marks, nBends, total) {
         y: p.x * 0.28 - p.z * 0.18,
       };
     } else {
-      // Side-mode: isometric projection (z inverted so positive = away from camera).
+      // Side-mode: isometric projection, z inverted + x inverted for "behind" perspective.
       const z = -p.z;
+      const x = -p.x;
       return {
-        x: (p.x - p.y) * cos30 + z * 0.5,
-        y: (p.x + p.y) * sin30 - z * 0.3,
+        x: (x - p.y) * cos30 + z * 0.5,
+        y: (x + p.y) * sin30 - z * 0.3,
       };
     }
   };
