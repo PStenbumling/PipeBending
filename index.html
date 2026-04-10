@@ -972,17 +972,16 @@
   <div class="panel">
     <div class="intro-card">
       <h3>Bananböj — en enkel böj mellan två kopplingar</h3>
-      <p>Du har ett rör som ska gå diagonalt från en T-koppling (nere) till ett H-stycke (uppe). Röret böjs en gång och du behöver veta exakt var märket ska sitta och hur långt röret ska kapas.</p>
+      <p>Röret ska gå diagonalt från en T-koppling (nere) till ett H-stycke (uppe). Du gör en böj — appen räknar ut kaplängd och märkposition åt dig.</p>
       <ul>
-        <li><strong>D — sidoförflyttning:</strong> Hur långt åt sidan röret förflyttas, mätt cc (rörcentrum till rörcentrum)</li>
-        <li><strong>H — rak stigning:</strong> Höjddifferensen längs rörets riktning (beräknas automatiskt om du väljer vinkel)</li>
-        <li><strong>Vinkel α:</strong> Böjvinkeln i grader — välj från förval eller räkna fritt</li>
-        <li><strong>M1:</strong> Märket från H-styckets ände (överkant) till böjpunkten</li>
-        <li><strong>instA / instB:</strong> Hur långt röret sticks in i T-koppling respektive H-stycke</li>
-        <li><strong>Höjd A / B:</strong> Montagehöjder för respektive koppling (mäts från golv eller referens)</li>
+        <li><strong>Sidmått:</strong> Hur långt åt sidan röret förflyttas, mätt centrum till centrum</li>
+        <li><strong>Bockningmärke M1:</strong> Avstånd från H-styckets ände till böjpunkten — mät alltid från H-stycke-sidan</li>
+        <li><strong>Instick:</strong> Hur långt röret sticks in i T-koppling respektive H-stycke</li>
+        <li><strong>Montagehöjder:</strong> Hur högt respektive koppling sitter (mäts från golv eller referens)</li>
+        <li><strong>Böjvinkel:</strong> Välj förval eller låt appen räkna ut den automatiskt</li>
       </ul>
       <div class="intro-tip">💡 Mät M1 från <strong>H-stycket</strong> (övre kopplingen).<br>👉 Börja alltså mäta från den sida där röret ska sluta. Mäter du från T-sidan hamnar böjen fel och röret passar inte.</div>
-      <div class="intro-extra">⚙ Friläge: du matar in D och H direkt. Vinkelläge: välj vinkel, H räknas ut automatiskt. Fromax No.55 ger empiriskt böjavdrag för 90° — annars används CLR-formeln.</div>
+      <div class="intro-extra">⚙ Så gör du: 1) Fyll i sidmått och höjder. 2) Ange M1 och instick. 3) Klicka Beräkna — appen visar kaplängd och böjmärke.</div>
     </div>
     <div class="panel-title">Indata — Bananböj (enkel böj)</div>
 
@@ -1007,14 +1006,14 @@
     <div class="section-label">Böjgeometri</div>
     <div class="input-grid">
       <div class="field">
-        <label for="djup">Offset <span>(D)</span></label>
-        <input type="number" id="djup" value="45" min="1" step="1" oninput="onLiveInput()" title="Offset D i millimeter">
-        <div class="hint">Sidförflyttning [mm]</div>
+        <label for="djup">Sidmått</label>
+        <input type="number" id="djup" value="45" min="1" step="1" oninput="onLiveInput()" title="Sidmått i millimeter">
+        <div class="hint">Centrum till centrum, rakt tvärs [mm]</div>
       </div>
       <div class="field">
         <label id="hojd-label" for="hojd">Rak stigning <span>(H)</span></label>
         <input type="number" id="hojd" value="66.7" min="1" step="0.5" title="Rak stigning H i millimeter">
-        <div class="hint" id="hojd-hint">D / tan(α) — vertikal del av sned-sträcka [mm]</div>
+        <div class="hint" id="hojd-hint">Höjddifferens längs rörets riktning [mm]</div>
       </div>
       <div class="field">
         <label>Rördiameter <span>(Ø)</span></label>
@@ -1138,7 +1137,7 @@
           <span class="kd-val" id="kd-raw">—</span>
         </div>
         <div class="kapa-row kd-deduct">
-          <span class="kd-label">Böjavdrag (CLR × (1−cos α))</span>
+          <span class="kd-label">Böjavdrag</span>
           <span class="kd-val" id="kd-deduct">—</span>
         </div>
         <div class="kapa-row kd-total">
@@ -1298,7 +1297,7 @@
           <input type="hidden" id="mb-diam" value="12">
         </div>
         <div class="field">
-          <label>Böjvinkel <span>(α)</span></label>
+          <label>Böjvinkel</label>
           <div class="mode-toggle mb-angle-toggle">
             <button type="button" class="mode-btn" onclick="mbSetAngle(45,this)">45°</button>
             <button type="button" class="mode-btn active" onclick="mbSetAngle(90,this)">90°</button>
@@ -1481,7 +1480,7 @@
           <input type="hidden" id="sb-diam" value="12">
         </div>
         <div class="field">
-          <label>Böjvinkel <span>(α)</span></label>
+          <label>Böjvinkel</label>
           <div class="mode-toggle sb-angle-toggle">
             <button type="button" class="mode-btn" onclick="sbSetAngle(30,this);sbLiveUpdate()">30°</button>
             <button type="button" class="mode-btn active" onclick="sbSetAngle(45,this);sbLiveUpdate()">45°</button>
@@ -1537,11 +1536,11 @@
           <div><span class="sb-hero-val" id="sb-cut">—</span> <span class="sb-hero-unit">mm</span></div>
         </div>
         <div class="sb-hero-cell">
-          <div class="sb-hero-label">// Förskjutning (D)</div>
+          <div class="sb-hero-label">// Sidmått</div>
           <div><span class="sb-hero-val sb-hero-accent" id="sb-d-out">—</span> <span class="sb-hero-unit">mm</span></div>
         </div>
         <div class="sb-hero-cell">
-          <div class="sb-hero-label">// M1 → M2 (L)</div>
+          <div class="sb-hero-label">// M1 → M2 (avstånd)</div>
           <div><span class="sb-hero-val" id="sb-L-out">—</span> <span class="sb-hero-unit">mm</span></div>
         </div>
       </div>
@@ -1554,7 +1553,7 @@
           <svg id="sbend-svg" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
         <div class="note sb-note-gap">
-          Böj vid M1 (vänster) och M2 (höger). Håll böjarna symmetriska för exakt förskjutning D.
+          Böj vid M1 (vänster) och M2 (höger). Håll böjarna symmetriska för exakt sidförskjutning.
         </div>
       </div>
     </div>
@@ -1569,13 +1568,12 @@
         <h3>Svanbock — tre böjar för att byta höjd och sida</h3>
         <p>Röret ska gå upp (eller ned) en bit och också flytta sig åt sidan. Det kräver tre böjar: en ut, en horisontell mittdel, och en tillbaka. Liknar formen på en svanhalsa.</p>
         <ul>
-          <li><strong>D — sidoförflyttning:</strong> Hur långt åt sidan röret förflyttas (cc till cc)</li>
-          <li><strong>H1 — första stigning:</strong> Höjden på den inledande diagonala delen</li>
-          <li><strong>H2 — mittdel:</strong> Längden på den vågräta mittbiten (måste vara positiv)</li>
-          <li><strong>Vinkel α:</strong> Böjvinkeln för de yttre böjarna</li>
+          <li><strong>Sidmått:</strong> Hur långt åt sidan röret förflyttas, centrum till centrum</li>
+          <li><strong>Total höjd:</strong> Hela den vertikala sträckan röret ska klara</li>
+          <li><strong>Böjvinkel:</strong> Välj en av knapparna — 45° är vanligast</li>
         </ul>
-        <div class="intro-tip">💡 Om mittdelen (H2) blir negativ i beräkningen är ditt D för stort i förhållande till H1 — öka H1 eller minska D.</div>
-        <div class="intro-extra">⚙ Appen beräknar M1, M2, M3 och total kaplängd. Bocka i ordning: böj 1 → böj 2 → böj 3.</div>
+        <div class="intro-tip">💡 Om appen säger att utrymmet är för litet: minska sidmåttet eller välj en flackare böjvinkel (t.ex. 30° istället för 45°).</div>
+        <div class="intro-extra">⚙ Så gör du: 1) Fyll i sidmått och total höjd. 2) Klicka Beräkna. 3) Märk upp M1, M2, M3 i ordning från röränden.</div>
       </div>
       <div id="sw-intent" class="sb-intent"></div>
       <div class="panel-title">Indata — Svanbock (3-böjserie, vertikal)</div>
@@ -1594,7 +1592,7 @@
           <input type="hidden" id="sw-diam" value="12">
         </div>
         <div class="field">
-          <label>Böjvinkel <span>(α)</span></label>
+          <label>Böjvinkel</label>
           <div class="mode-toggle sw-angle-toggle">
             <button type="button" class="mode-btn" onclick="swSetAngle(30,this);swLiveUpdate()">30°</button>
             <button type="button" class="mode-btn active" onclick="swSetAngle(45,this);swLiveUpdate()">45°</button>
@@ -1616,27 +1614,31 @@
       <div class="section-label">Geometri</div>
       <div class="input-grid-2">
         <div class="field">
-          <label for="sw-height">Total höjd <span>(H)</span></label>
+          <label for="sw-height">Total höjd</label>
           <input type="number" id="sw-height" value="400" min="1" step="1" oninput="swLiveUpdate()">
-          <div class="hint">Vertikal totalsträcka [mm]</div>
+          <div class="hint">Vertikal sträcka röret ska klara [mm]</div>
         </div>
         <div class="field">
-          <label for="sw-offset">Förskjutning <span>(D)</span></label>
+          <label for="sw-offset">Sidmått</label>
           <input type="number" id="sw-offset" value="60" min="1" step="1" oninput="swLiveUpdate()">
-          <div class="hint">Lateral förskjutning per böjsektion [mm]</div>
+          <div class="hint">Centrum till centrum, rakt tvärs [mm]</div>
         </div>
       </div>
       <div class="input-grid-2">
         <div class="field">
-          <label for="sw-m1">Rör före M1</label>
+          <label for="sw-m1">Längd längs väggen</label>
           <input type="number" id="sw-m1" value="50" min="0" step="1" oninput="swLiveUpdate()">
-          <div class="hint">Röränden → böjmärke M1 [mm]</div>
+          <div class="hint">Från röränden till första böjmärket [mm]</div>
         </div>
         <div class="field">
           <label for="sw-end">Rör efter M4</label>
           <input type="number" id="sw-end" value="50" min="0" step="1" oninput="swLiveUpdate()">
           <div class="hint">Böjmärke M4 → rörände [mm]</div>
         </div>
+      </div>
+
+      <div class="sb-quick-actions">
+        <button type="button" class="sb-example-btn" onclick="swLoadExample()">Testa med exempelmått</button>
       </div>
 
       <button type="button" class="calc-btn" onclick="swCalculate()">▶ BERÄKNA SVANBOCK</button>
@@ -1653,7 +1655,7 @@
           <div><span class="sb-hero-val" id="sw-cut">—</span> <span class="sb-hero-unit">mm</span></div>
         </div>
         <div class="sb-hero-cell">
-          <div class="sb-hero-label">// Förskjutning (D)</div>
+          <div class="sb-hero-label">// Sidmått</div>
           <div><span class="sb-hero-val sb-hero-accent" id="sw-d-out">—</span> <span class="sb-hero-unit">mm</span></div>
         </div>
         <div class="sb-hero-cell">
@@ -1665,6 +1667,7 @@
       <div class="panel">
         <div class="panel-title">Böjmärken</div>
         <div class="sb-marks-grid" id="sw-marks-grid"></div>
+        <div class="sb-worklist" id="sw-worklist"></div>
         <div class="sb-diagram-wrap">
           <svg id="swan-svg" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
@@ -1692,7 +1695,7 @@
         <div class="intro-tip">💡 h1 och h2 mäts alltid till rörcentrum (cc) — inte till utsidan av röret.</div>
         <div class="intro-extra">⚙ Appen räknar automatiskt ut clearance mot takbocken och varnar om utrymmet är för litet.</div>
       </div>
-      <div class="to-clearance-tag">Auto clearance before ceiling bend</div>
+      <div class="to-clearance-tag">Automatisk kontroll av utrymme mot takböj</div>
       <div class="panel-title">Indata — Takoffset (S-böj vid takinstallation)</div>
 
       <div class="mb-top-grid">
@@ -1709,7 +1712,7 @@
           <input type="hidden" id="to-diam" value="12">
         </div>
         <div class="field">
-          <label>Böjvinkel <span>(α)</span></label>
+          <label>Böjvinkel</label>
           <div class="mode-toggle to-angle-toggle">
             <button type="button" class="mode-btn" onclick="toSetAngle(30,this)">30°</button>
             <button type="button" class="mode-btn active" onclick="toSetAngle(45,this)">45°</button>
@@ -1731,20 +1734,20 @@
       <div class="section-label">Takavstånd</div>
       <div class="input-grid-2">
         <div class="field">
-          <label for="to-h1">Nuvarande avstånd till tak <span>(h1)</span></label>
+          <label for="to-h1">Nuvarande avstånd till tak</label>
           <input type="number" id="to-h1" value="20" min="1" step="1" oninput="toUpdateD()">
-          <div class="hint">Rör cc → tak, before S-böj [mm]</div>
+          <div class="hint">Rör cc → tak, före S-böjen [mm]</div>
         </div>
         <div class="field">
-          <label for="to-h2">Krav-avstånd till tak <span>(h2)</span></label>
+          <label for="to-h2">Mål-avstånd till tak</label>
           <input type="number" id="to-h2" value="70" min="1" step="1" oninput="toUpdateD()">
-          <div class="hint">Rör cc → tak, after S-böj [mm]</div>
+          <div class="hint">Rör cc → tak, efter S-böjen [mm]</div>
         </div>
       </div>
 
       <!-- Auto-computed D -->
       <div class="to-d-row">
-        <span class="to-d-label">Förskjutning (D) =</span>
+        <span class="to-d-label">Sidmått (beräknas automatiskt) =</span>
         <span class="to-d-val" id="to-d-display">50</span>
         <span class="to-d-formula" id="to-d-formula">= h2 − h1 = 70 − 20</span>
       </div>
@@ -1752,9 +1755,9 @@
       <div class="section-label">Rörlängd</div>
       <div class="input-grid-2">
         <div class="field">
-          <label for="to-m1">Rör före M1</label>
+          <label for="to-m1">Längd längs väggen</label>
           <input type="number" id="to-m1" value="100" min="0" step="1">
-          <div class="hint">Röränden → böjmärke M1 [mm]</div>
+          <div class="hint">Från röränden till första böjmärket [mm]</div>
         </div>
         <div class="field">
           <label for="to-end">Rör efter M2</label>
@@ -1790,15 +1793,15 @@
           <div><span class="sb-hero-val" id="to-cut">—</span> <span class="sb-hero-unit">mm</span></div>
         </div>
         <div class="sb-hero-cell">
-          <div class="sb-hero-label">// Förskjutning (D)</div>
+          <div class="sb-hero-label">// Sidmått</div>
           <div><span class="sb-hero-val sb-hero-accent" id="to-D-out">—</span> <span class="sb-hero-unit">mm</span></div>
         </div>
         <div class="sb-hero-cell">
-          <div class="sb-hero-label">// M1 → M2 (L)</div>
+          <div class="sb-hero-label">// M1 → M2 (avstånd)</div>
           <div><span class="sb-hero-val" id="to-L-out">—</span> <span class="sb-hero-unit">mm</span></div>
         </div>
         <div class="sb-hero-cell">
-          <div class="sb-hero-label">// Axiellt avst. (H)</div>
+          <div class="sb-hero-label">// Axiellt avstånd</div>
           <div><span class="sb-hero-val" id="to-H-out">—</span> <span class="sb-hero-unit">mm</span></div>
         </div>
       </div>
@@ -3808,6 +3811,31 @@ function swAutoFix() {
   swCalculate();
 }
 
+function swLoadExample() {
+  swSetPipeSize(12);
+  const angleBtn = [...document.querySelectorAll('.sw-angle-toggle .mode-btn')]
+    .find(b => b.textContent.includes('45'));
+  swSetAngle(45, angleBtn || null);
+  document.getElementById('sw-height').value = 400;
+  document.getElementById('sw-offset').value = 60;
+  document.getElementById('sw-m1').value = 50;
+  document.getElementById('sw-end').value = 50;
+  swSetIntent();
+}
+
+function swUpdateWorkList(m1, m2, m3) {
+  const el = document.getElementById('sw-worklist');
+  if (!el) return;
+  el.innerHTML = `
+    <strong>Gör så här på röret:</strong>
+    <ul>
+      <li>Sätt tumstockens nolla på röränden där du börjar mäta.</li>
+      <li>Markera första böjen vid ${m1.toFixed(1)} mm (M1) — bocka vänster.</li>
+      <li>Mät vidare och markera andra böjen vid ${m2.toFixed(1)} mm (M2) — bocka höger.</li>
+      <li>Markera tredje böjen vid ${m3.toFixed(1)} mm (M3) — bocka vänster.</li>
+    </ul>`;
+}
+
 function swCalculate() {
   swSetIntent();
 
@@ -3922,6 +3950,7 @@ function swCalculate() {
     </div>`;
 
   swDrawDiagram(M1ref, L, vmid, rEnd, D, H1, A);
+  swUpdateWorkList(M1, M2, M3);
 }
 
 function swDrawDiagram(M1ref, L, vmid, rEnd, D, H1, A) {
