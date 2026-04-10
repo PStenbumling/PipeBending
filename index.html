@@ -499,6 +499,7 @@
   }
   .mb-deduct-badge .bd-val { color: var(--accent); font-size: 1rem; }
   .mb-deduct-badge .bd-label { color: var(--text-dim); }
+  .mb-deduct-badge .bd-estimated { color: var(--danger); font-weight: bold; }
   .mb-deduct-override {
     background: var(--bg); border: 1px solid #3a2808; border-radius: 4px;
     color: var(--accent); font-family: 'Share Tech Mono', monospace; font-size: 0.9rem;
@@ -859,7 +860,7 @@
       </svg>
     </div>
     <div>
-      <h1>RÖRBOCK <span>// PIPE BENDING CALCULATOR v0.3</span></h1>
+      <h1>RÖRBOCK <span>// PIPE BENDING CALCULATOR v0.4</span></h1>
     </div>
   </header>
 
@@ -932,6 +933,11 @@
         <input type="number" id="clr" value="43" min="1" step="1" class="computed" readonly>
         <div class="hint">Centerline Radius [mm] — auto vid Fromax</div>
       </div>
+      <div class="field">
+        <label for="springback">Fjädringstillägg <span>(°)</span></label>
+        <input type="number" id="springback" value="1.5" min="0" max="10" step="0.5">
+        <div class="hint">Överbocka X° — halvhård Cu ≈ 1–2°, stål ≈ 2–3°</div>
+      </div>
     </div>
 
     <!-- ── VÄGGAVSTÅND ── -->
@@ -979,7 +985,7 @@
       <div class="field">
         <label>M1 — Bockningsmärke A</label>
         <input type="number" id="m1val" value="50" min="1" step="1">
-        <div class="hint">Från rörändans underkant [mm]</div>
+        <div class="hint">Från <strong>H-stycke-änden</strong> (överkant) [mm]</div>
       </div>
       <div class="field">
         <label>Instick A <span>(T-koppling)</span></label>
@@ -1110,7 +1116,7 @@
         <div class="step">
           <div class="step-num">3</div>
           <div class="step-body">
-            <div class="step-formula">M1 = bockningsmärke (från underkant av röret)</div>
+            <div class="step-formula">M1 = bockningsmärke (från H-stycke-änden / överkant)</div>
             <div class="step-result" id="f3">—</div>
           </div>
         </div>
@@ -1131,7 +1137,7 @@
       </div>
 
       <div class="note">
-        <strong>OBS:</strong> Fjädring kompenseras med +1–2° vid bockning. Fromax No.55 CLR: 12mm→43mm, 15mm→53mm (officiell manual).
+        <strong>OBS:</strong> Ange rätt Fjädringstillägg för ditt material och verktyg (halvhård koppar ≈ 1–2°, hård koppar/stål ≈ 2–3°). Fromax No.55 CLR: 12mm→43mm, 15mm→53mm.
       </div>
     </div>
 
@@ -2117,12 +2123,19 @@ function mbSetBendTool(tool) {
 }
 
 function mbUpdateDeductBadge() {
-  const bd  = mbGetBendDeduction();
-  const emp = mbIsEmpirical();
-  document.getElementById('mb-bd-auto').textContent  = bd.toFixed(1) + ' mm';
-  document.getElementById('mb-bd-src').textContent   = emp
-    ? '(empiriskt — Fromax 90°)'
-    : '(CLR × (1−cos α))';
+  const bd   = mbGetBendDeduction();
+  const emp  = mbIsEmpirical();
+  const size = parseFloat(document.getElementById('mb-diam').value);
+  const est  = emp && size === 15; // 15 mm-värdet är uppskattat, ej uppmätt
+  document.getElementById('mb-bd-auto').textContent = bd.toFixed(1) + ' mm';
+  const srcEl = document.getElementById('mb-bd-src');
+  if (est) {
+    srcEl.textContent = '(empiriskt — Fromax 90° — ⚠ 15 mm: UPPSKATTAT, ej uppmätt)';
+    srcEl.className   = 'bd-label bd-estimated';
+  } else {
+    srcEl.textContent = emp ? '(empiriskt — Fromax 90°)' : '(CLR × (1−cos α))';
+    srcEl.className   = 'bd-label';
+  }
 }
 
 function mbRecalc() {
@@ -2717,12 +2730,20 @@ function calculate(forceShow = false) {
     `${fmt(M1,0)} + ${fmt(L,1)} + ${fmt(instA,0)} − ${fmt(bendDeduction,1)} = <em>${fmt(kapa,1)} mm</em>`;
 
   // ── Arbetsordning ─────────────────────────────────────────────────────
-  const springbackAngle = (alpha_deg + 1.5).toFixed(1);
+  const springback = parseFloat(document.getElementById('springback').value) || 0;
+  const springbackAngle = (alpha_deg + springback).toFixed(1);
+  const _wT = parseFloat(document.getElementById('wallT').value);
+  const _wH = parseFloat(document.getElementById('wallH').value);
+  const hasWallsDir = !isNaN(_wT) && !isNaN(_wH);
+  const bendDirText = hasWallsDir
+    ? (_wH > _wT ? 'bort från vägg (H-stycke längre ut)' : 'mot vägg (H-stycke närmre)')
+    : 'se diagram';
   const steps = [
     `Kapa röret till <em>${fmt(kapa,0)} mm</em>`,
     `Märk M1 = <em>${fmt(M1,0)} mm</em> från överkant (H-stycke-sidan)`,
+    `Böjriktning: <em>${bendDirText}</em>`,
     `Böj till <em>${springbackAngle}°</em> vid M1 — fjädring ger ~${fmt(alpha_deg,1)}° efter release`,
-    `Stick in ${fmt(instA,0)}mm i T-koppling och ${fmt(instB,0)}mm i H-stycke`,
+    `Stick in <em>${fmt(instA,0)} mm</em> i T-koppling och <em>${fmt(instB,0)} mm</em> i H-stycke`,
   ];
 
   document.getElementById('workflow-steps').innerHTML = steps.map((s, i) =>
@@ -2733,7 +2754,7 @@ function calculate(forceShow = false) {
   let rows = '';
   rows += `<tr><td>Rör att kapa</td><td>${fmt(kapa,0)} mm</td><td>Rörkniv/kapmaskin</td></tr>`;
   rows += `<tr><td>Böjkorrigering (CLR=${fmt(clr,0)})</td><td>−${fmt(bendDeduction,1)} mm</td><td>Ingår i kapa</td></tr>`;
-  rows += `<tr><td>M1 — Bockningsmärke</td><td>${fmt(M1,0)} mm</td><td>Böj till ${springbackAngle}° (fjädring) — mäts från överkant</td></tr>`;
+  rows += `<tr><td>M1 — Bockningsmärke</td><td>${fmt(M1,0)} mm</td><td>Böj till ${springbackAngle}° (fjädring +${springback}°) — mäts från H-stycke-änden (överkant)</td></tr>`;
   rows += `<tr><td>Instick A (T-koppling)</td><td>${fmt(instA,0)} mm</td><td>Underkant in i T-koppling (diagonalt)</td></tr>`;
   rows += `<tr><td>Instick B (H-stycke)</td><td>${fmt(instB,0)} mm</td><td>Överkant in i H-stycke (rakt)</td></tr>`;
   rows += `<tr><td>T-koppling bygger</td><td>${fmt(tBygg,0)} mm</td><td>Stam cc → grenrörets mun (ingår i beräkning)</td></tr>`;
