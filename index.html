@@ -736,6 +736,7 @@
     background: var(--bg); border: 1px solid var(--border);
     border-radius: 6px; padding: 12px; margin-top: 16px; overflow-x: auto;
   }
+  #mb-iso-diagram { display: block; width: 100%; }
   #sbend-svg, #swan-svg, #takoffset-svg { display: block; width: 100%; }
   .sb-note-gap { margin-top: 12px; }
 
@@ -1214,12 +1215,13 @@
       <div class="section-label">Sträckor &amp; riktningar</div>
       <div class="mb-segments-wrap">
         <div class="mb-seg-header">
-          <span>Sträcka</span><span>Längd (mm)</span><span>Böjriktning</span><span></span>
+          <span>Sträcka</span><span>Längd (mm)</span><span>Böjriktning (i färdriktning)</span><span></span>
         </div>
         <div id="mb-seg-list"></div>
       </div>
       <div class="mb-seg-actions">
         <button type="button" class="mb-add-btn" onclick="mbAddSegment()">+ Lägg till sträcka</button>
+        <button type="button" class="mb-add-btn" onclick="mbPresetUBend()">U-bockläge (R-L-R)</button>
       </div>
 
       <!-- Stock length -->
@@ -1307,6 +1309,16 @@
         <div class="section-label mb-diagram-label">Schematisk vy — märkpositioner</div>
         <div class="mb-diagram-wrap">
           <svg id="mb-diagram" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+
+        <div class="section-label mb-diagram-label">Isometrisk riktningsvy — följ röret framåt (L/R)</div>
+        <div class="mode-toggle mb-iso-ref-toggle">
+          <button type="button" class="mode-btn active" id="mb-iso-ref-travel" onclick="mbSetIsoRef('travel')">Följ röret framåt</button>
+          <button type="button" class="mode-btn" id="mb-iso-ref-side" onclick="mbSetIsoRef('side')">Visa från sidan</button>
+        </div>
+        <div class="hint">Riktning gäller i färdriktning från START.</div>
+        <div class="mb-diagram-wrap">
+          <svg id="mb-iso-diagram" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
 
         <div class="note mb-note-gap">
@@ -1822,6 +1834,7 @@ function setTab(el) {
 
 // ══ FLERBÖJ STATE & LOGIC ════════════════════════════════════════════════
 let mbBendTool = 'fromax';
+let mbIsoRefMode = 'travel'; // 'travel' (rörmokarlogik) | 'side' (visuell/debug)
 let trViewMode = 'iso'; // 'iso' | 'persp' | 'preview'
 let trPerspPreset = 'clear'; // 'cad' | 'clear'
 let trPreviewAnimId = null;
@@ -2207,6 +2220,31 @@ function mbAddSegment() {
   mbRenderSegments();
 }
 
+function mbPresetUBend() {
+  // Typical U-shape travel sequence: Right -> Left -> Right
+  mbSegments = [300, 220, 300, 220];
+  mbDirs     = ['R', 'L', 'R'];
+
+  // U-bends are commonly 90° in this workflow.
+  document.getElementById('mb-angle').value = 90;
+  document.querySelectorAll('#mb-section .mb-angle-toggle .mode-btn').forEach((b) => {
+    b.classList.toggle('active', b.textContent.includes('90'));
+  });
+
+  mbRenderSegments();
+  mbUpdateDeductBadge();
+  mbCalculate();
+}
+
+function mbSetIsoRef(mode) {
+  mbIsoRefMode = mode === 'side' ? 'side' : 'travel';
+  const bTravel = document.getElementById('mb-iso-ref-travel');
+  const bSide   = document.getElementById('mb-iso-ref-side');
+  if (bTravel) bTravel.classList.toggle('active', mbIsoRefMode === 'travel');
+  if (bSide)   bSide.classList.toggle('active', mbIsoRefMode === 'side');
+  mbCalculate();
+}
+
 // ── Calculation ────────────────────────────────────────────────────────────
 function mbComputeMarks(segs, bd) {
   const marks = [];
@@ -2245,7 +2283,9 @@ function mbCalculate() {
   let rows = '';
   for (let i = 0; i < nBends; i++) {
     const dir      = mbDirs[i] || 'L';
-    const dirLabel = dir === 'L' ? '<span class="mb-dir-L">◄ Vänster</span>' : '<span class="mb-dir-R">Höger ►</span>';
+    const dirLabel = dir === 'L'
+      ? '<span class="mb-dir-L">◄ Vänster (i färdriktning)</span>'
+      : '<span class="mb-dir-R">Höger ► (i färdriktning)</span>';
     const deductStr = i === 0 ? '—' : `−${bd.toFixed(1)} mm`;
     const onP2     = hasOv && marks[i] > stock_t;
     const localPos = onP2 ? (marks[i] - stock_t - coupNet_t) : marks[i];
@@ -2281,6 +2321,7 @@ function mbCalculate() {
   mbCheckOverflow(total, marks);
 
   mbDrawDiagram(marks, nBends, total, bd);
+  mbDrawIsoDiagram(marks, nBends, total);
   document.getElementById('mb-results').style.display = 'block';
 }
 
@@ -2481,11 +2522,6 @@ function mbDrawDiagram(marks, nBends, total, bd) {
     html += `<text x="${mx}" y="${numY}" fill="${col}"
       font-family="${MONO}" font-size="8" text-anchor="middle">${dispPos}</text>`;
 
-    // Direction arrow on pipe
-    const arrY = up ? cy + 6 : cy - 6;
-    html += `<text x="${mx}" y="${arrY + 4}" fill="${col}"
-      font-family="${MONO}" font-size="10" text-anchor="middle">${dir === 'L' ? '◄' : '►'}</text>`;
-
     prevX = mx;
   }
 
@@ -2496,6 +2532,151 @@ function mbDrawDiagram(marks, nBends, total, bd) {
     html += `<text x="${spanMid}" y="${cy - 14}" fill="${DIM}"
       font-family="${MONO}" font-size="8" text-anchor="middle">${mbSegments[mbSegments.length - 1]}mm</text>`;
   }
+
+  svg.innerHTML = html;
+}
+
+function mbDrawIsoDiagram(marks, nBends, total) {
+  const svg = document.getElementById('mb-iso-diagram');
+  if (!svg) return;
+
+  const W = svg.parentElement.clientWidth || 600;
+  const H = 220;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('height', H);
+
+  const MONO = 'Share Tech Mono';
+  const PIPE = '#7ccf93';
+  const COL_L = '#6ab0f0';
+  const COL_R = '#f06a90';
+  const COL_N = '#7ccf93';
+  const AXIS = '#3a4a35';
+  const TXT  = '#9db7a2';
+
+  const nSegs = mbSegments.length;
+  if (!nSegs || total <= 0) {
+    svg.innerHTML = '';
+    return;
+  }
+
+  // Build path using vector + left-normal logic (robust L/R semantics).
+  // travel mode = plumber reference (from START forward)
+  // side mode   = visual/debug reference (mirrored left/right)
+  const pts = [{ x: 0, y: 0, z: 0 }];
+  const depthStep = Math.max(40, Math.min(110, total * 0.08));
+  let heading = { x: 1, y: 0 }; // start direction = +X
+  let x = 0, y = 0, z = 0;
+
+  for (let i = 0; i < nSegs; i++) {
+    const seg = mbSegments[i] || 0;
+    x += heading.x * seg;
+    y += heading.y * seg;
+    pts.push({ x, y, z });
+
+    if (i < nBends) {
+      const dir = mbDirs[i] || 'L';
+      const leftNormal = { x: -heading.y, y: heading.x };
+      // In side/debug mode we intentionally mirror interpretation.
+      const useLeft = mbIsoRefMode === 'travel' ? (dir === 'L') : (dir === 'R');
+      heading = useLeft
+        ? leftNormal
+        : { x: -leftNormal.x, y: -leftNormal.y };
+
+      // Small plane separation to avoid visual collapse in alternating patterns.
+      const zSign = useLeft ? 1 : -1;
+      z += zSign * depthStep;
+    }
+  }
+
+  // Bounds for scaling
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  pts.forEach(p => {
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
+  });
+  const spanX = Math.max(1, maxX - minX);
+  const spanY = Math.max(1, maxY - minY);
+
+  // Isometric projection helper + depth separation in screen space
+  const cos30 = Math.cos(Math.PI / 6);
+  const sin30 = Math.sin(Math.PI / 6);
+  const proj = (p) => ({
+    x: (p.x - p.y) * cos30 + p.z * 0.5,
+    y: (p.x + p.y) * sin30 - p.z * 0.3,
+  });
+  const pProj = pts.map(proj);
+
+  // Reference centerline (what the run would look like without lateral drift).
+  const baseProj = [proj({ x: 0, y: 0, z: 0 }), proj({ x: total, y: 0, z: 0 })];
+
+  let pMinX = Infinity, pMinY = Infinity, pMaxX = -Infinity, pMaxY = -Infinity;
+  pProj.forEach(p => {
+    if (p.x < pMinX) pMinX = p.x;
+    if (p.y < pMinY) pMinY = p.y;
+    if (p.x > pMaxX) pMaxX = p.x;
+    if (p.y > pMaxY) pMaxY = p.y;
+  });
+
+  const pad = 24;
+  const drawW = W - pad * 2;
+  const drawH = H - 68;
+  const sx = drawW / Math.max(1, pMaxX - pMinX);
+  const sy = drawH / Math.max(1, pMaxY - pMinY);
+  const scale = Math.min(sx, sy);
+
+  const tx = pad - pMinX * scale;
+  const ty = 34 - pMinY * scale;
+  const map = (p) => ({ x: p.x * scale + tx, y: p.y * scale + ty });
+
+  let html = '';
+  const modeLabel = mbIsoRefMode === 'travel' ? 'FÖLJ RÖRET FRAMÅT' : 'VISA FRÅN SIDAN';
+  html += `<text x="${pad}" y="14" fill="${TXT}" font-family="${MONO}" font-size="8" text-anchor="start">ISOMETRISK RIKTNINGSVY (${modeLabel})</text>`;
+
+  const b0 = map(baseProj[0]);
+  const b1 = map(baseProj[1]);
+  html += `<line x1="${b0.x}" y1="${b0.y}" x2="${b1.x}" y2="${b1.y}" stroke="#6f7b74" stroke-width="1" stroke-dasharray="4,3" opacity="0.35"/>`;
+  html += `<text x="${(b0.x + b1.x) / 2}" y="${(b0.y + b1.y) / 2 - 6}" fill="#6f7b74" font-family="${MONO}" font-size="7" text-anchor="middle" opacity="0.8">centerlinje referens</text>`;
+
+  // Draw projected segments, color-coded by NEXT bend direction.
+  // Segment i gets color from bend i (R/L) at its end. Last segment is neutral.
+  const pp = pProj.map(map);
+  for (let i = 0; i < pp.length - 1; i++) {
+    const nextDir = i < nBends ? (mbDirs[i] || 'L') : null;
+    const segCol  = nextDir === 'L' ? COL_L : (nextDir === 'R' ? COL_R : COL_N);
+    html += `<line x1="${pp[i].x}" y1="${pp[i].y}" x2="${pp[i + 1].x}" y2="${pp[i + 1].y}"
+      stroke="${segCol}" stroke-width="4" stroke-linecap="round"/>`;
+  }
+
+  // Start/end markers
+  html += `<circle cx="${pp[0].x}" cy="${pp[0].y}" r="4" fill="#e8a020"/>`;
+  html += `<circle cx="${pp[pp.length-1].x}" cy="${pp[pp.length-1].y}" r="4" fill="#5fcf80"/>`;
+  html += `<text x="${pp[0].x}" y="${pp[0].y + 14}" fill="#e8a020" font-family="${MONO}" font-size="8" text-anchor="middle">START</text>`;
+  html += `<text x="${pp[pp.length-1].x}" y="${pp[pp.length-1].y + 14}" fill="#5fcf80" font-family="${MONO}" font-size="8" text-anchor="middle">SLUT</text>`;
+
+  // Bend labels (M1.. + L/R)
+  for (let i = 1; i <= nBends; i++) {
+    const p = pp[i];
+    const dir = mbDirs[i - 1] || 'L';
+    const col = dir === 'L' ? '#6ab0f0' : '#f06a90';
+    const t = dir === 'L' ? '◄ L' : 'R ►';
+    html += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${col}"/>`;
+    html += `<text x="${p.x + 6}" y="${p.y - 6}" fill="${col}" font-family="${MONO}" font-size="8" text-anchor="start">M${i} ${t}</text>`;
+  }
+
+  // Direction arrow and sequence text
+  const seq = mbDirs.slice(0, nBends).join('-') || '-';
+  const netSide = pts[pts.length - 1].y - pts[0].y;
+  const ay = H - 22;
+  html += `<line x1="${pad}" y1="${ay}" x2="${pad + 70}" y2="${ay}" stroke="${AXIS}" stroke-width="1.5"/>`;
+  html += `<polygon points="${pad + 70},${ay} ${pad + 64},${ay - 3} ${pad + 64},${ay + 3}" fill="${AXIS}"/>`;
+  html += `<text x="${pad + 78}" y="${ay + 3}" fill="${TXT}" font-family="${MONO}" font-size="8" text-anchor="start">färdriktning</text>`;
+  html += `<text x="${W - pad}" y="${ay + 3}" fill="${TXT}" font-family="${MONO}" font-size="8" text-anchor="end">sekvens: ${seq}</text>`;
+  html += `<text x="${W - pad}" y="${ay - 10}" fill="${TXT}" font-family="${MONO}" font-size="7" text-anchor="end">netto sidoförskjutning: ${Math.round(netSide)} mm</text>`;
+  html += `<text x="${pad}" y="${ay - 10}" fill="${COL_L}" font-family="${MONO}" font-size="7" text-anchor="start">bla = nästa böj L</text>`;
+  html += `<text x="${pad + 92}" y="${ay - 10}" fill="${COL_R}" font-family="${MONO}" font-size="7" text-anchor="start">rosa = nästa böj R</text>`;
+  html += `<text x="${pad + 190}" y="${ay - 10}" fill="${PIPE}" font-family="${MONO}" font-size="7" text-anchor="start">grön = slutsträcka</text>`;
 
   svg.innerHTML = html;
 }
