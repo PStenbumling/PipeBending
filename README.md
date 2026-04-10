@@ -131,6 +131,15 @@ Nedan visas hur krav kan härledas till konkreta delar i appen.
 
 ## Releasehistorik
 
+Version v0.5.0:
+- Pedagogiska intro-kort tillagda i alla sex flikar (Bananböj, Flerböj, S-böj, Svanbock, Takoffset, Takrör 90°)
+- Varje intro förklarar syfte, nödvändiga mått, vanliga misstag och extra funktioner — skrivet för lärlingar
+- Riktningsvy flerböj: förenklad 2D-planvy ersätter komplex 3D-matrisprojektion
+- Riktningsvy: korrekt L/R-rotationslogik för SVG-koordinatsystem
+- U-bock förinställning uppdaterad till 4 böjar (R-L-L-R) för korrekt bypass-form
+- Perspektivvy Takrör: 2-punktsperspektiv (VPL/VPR) ersätter kameramatris-approach
+- Versionstring uppdaterad till v0.5.0
+
 Version v0.4.3:
 - Refactor: central `projectPoint()` funktion för konsekvent z-inversion i side-view
 - Side-view (Visa från sidan): 45° roterad vänster för bättre perspektiv
