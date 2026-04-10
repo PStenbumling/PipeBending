@@ -1234,7 +1234,7 @@
         </div>
       </div>
 
-      <button type="button" class="calc-btn mb-calc-btn" onclick="mbCalculate()">▶ BERÄKNA MÄRKEN</button>
+      <button type="button" class="calc-btn mb-calc-btn" onclick="mbSetIsoRef('travel'); mbCalculate()">▶ BERÄKNA MÄRKEN</button>
     </div>
 
     <!-- RESULTS -->
@@ -2236,13 +2236,15 @@ function mbPresetUBend() {
   mbCalculate();
 }
 
+let mbLastMarks = [], mbLastNBends = 0, mbLastTotal = 0;
+
 function mbSetIsoRef(mode) {
   mbIsoRefMode = mode === 'side' ? 'side' : 'travel';
   const bTravel = document.getElementById('mb-iso-ref-travel');
   const bSide   = document.getElementById('mb-iso-ref-side');
   if (bTravel) bTravel.classList.toggle('active', mbIsoRefMode === 'travel');
   if (bSide)   bSide.classList.toggle('active', mbIsoRefMode === 'side');
-  mbCalculate();
+  if (mbLastTotal > 0) mbDrawIsoDiagram(mbLastMarks, mbLastNBends, mbLastTotal);
 }
 
 // ── Calculation ────────────────────────────────────────────────────────────
@@ -2257,7 +2259,6 @@ function mbComputeMarks(segs, bd) {
 }
 
 function mbCalculate() {
-  mbSetIsoRef('travel');
   const bd      = mbGetBendDeduction();
   const nBends  = mbSegments.length - 1;
   const marks   = mbComputeMarks(mbSegments, bd);
@@ -2320,6 +2321,9 @@ function mbCalculate() {
 
   // Overflow + coupling check (marks never modified)
   mbCheckOverflow(total, marks);
+
+  // Cache for iso-toggle redraw.
+  mbLastMarks = marks; mbLastNBends = nBends; mbLastTotal = total;
 
   mbDrawDiagram(marks, nBends, total, bd);
   mbDrawIsoDiagram(marks, nBends, total);
@@ -2634,7 +2638,7 @@ function mbDrawIsoDiagram(marks, nBends, total) {
 
   const pProj = followPipeCamera
     ? ptsNorm.map(alignToRoute).map(followProj)
-    : ptsNorm.map(isoProj);
+    : ptsNorm.map(p => isoProj({ x: p.x, y: p.y, z: -p.z }));
   const baseProj = followPipeCamera
     ? [
         followProj(alignToRoute({ x: 0, y: 0, z: 0 })),
