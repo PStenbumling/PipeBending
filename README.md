@@ -129,19 +129,36 @@ Nedan visas hur krav kan harledas till konkreta delar i appen.
 | L/R ska tolkas i färdriktning | Textforandring i riktningskolumn + legend i diagram | mb-seg-header + mbDrawDiagram() |
 | Overflow ska hanteras utan att forstora markerna | Varnar och visar pjas 1/pjas 2 med skarv | mbCheckOverflow() |
 
-## Tillägg som har gjorts (senaste arbetet)
+## Releasehistorik
 
-Version v0.4 (funktionella tillagg):
+Version v0.4.1:
+- Isometrisk flerboj-vy har separat visualisering for riktningslogik.
+- Segment i isometrisk vy ar fargkodade efter nasta bojriktning (L/R).
+- Nytt U-bocklage med forval R-L-R for snabbstart.
+- Toggle for referenssystem i isometrisk vy:
+	- Folj roret framat (rormokarlogik)
+	- Visa fran sidan (visuell/debug)
+- Follow-pipe camera i travel-lage.
+- Auto-zoom fix i isometrisk vy:
+	- padding runt extents
+	- minimum spread
+	- centrering pa START->SLUT
+- Centerlinje-referens och netto sidoforskjutning visas i isometrisk vy.
+
+Version v0.4:
 - Enhetlig M1-referens i Bananboj: H-stycke-ande (overkant).
-- Nytt falt for justerbar fjadringstillägg (grader).
+- Nytt falt for justerbar fjadringstillagg (grader).
 - Arbetsordning fortydligad med bojriktning (mot/fran vagg nar underlag finns).
 - Marktabell i Bananboj visar fjadring som faktisk parameter.
 - Flerboj visar tydlig varning att 15 mm empiriskt varde ar uppskattat.
 
-Senaste UX-tillagg i Flerboj (lokal arbetskopia):
-- Riktningsrubrik andrad till "Bojriktning (i fardriktning)".
-- Diagrammet har fardriktningslegend med pil och explicit tolkning av L/R.
-- Riktningsetiketter i tabell fortydligade till "(i fardriktning)".
+## Spårning av ändringar
+
+For att halla track pa allt i projektet anvands denna rutin:
+- Versionsnummer i appheadern (index.html och pipe-bender.html).
+- Releasehistorik i denna README (detta avsnitt).
+- En commit per logisk andring (kort, tydligt meddelande).
+- Git-tag per release (exempel: v0.4.1).
 
 ## Verifiering och anvandning
 

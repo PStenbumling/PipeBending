@@ -861,7 +861,7 @@
       </svg>
     </div>
     <div>
-      <h1>RÖRBOCK <span>// PIPE BENDING CALCULATOR v0.4</span></h1>
+      <h1>RÖRBOCK <span>// PIPE BENDING CALCULATOR v0.4.1</span></h1>
     </div>
   </header>
 
@@ -2588,17 +2588,6 @@ function mbDrawIsoDiagram(marks, nBends, total) {
     }
   }
 
-  // Bounds for scaling
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  pts.forEach(p => {
-    if (p.x < minX) minX = p.x;
-    if (p.y < minY) minY = p.y;
-    if (p.x > maxX) maxX = p.x;
-    if (p.y > maxY) maxY = p.y;
-  });
-  const spanX = Math.max(1, maxX - minX);
-  const spanY = Math.max(1, maxY - minY);
-
   // Isometric projection helper + depth separation in screen space
   const cos30 = Math.cos(Math.PI / 6);
   const sin30 = Math.sin(Math.PI / 6);
@@ -2606,10 +2595,35 @@ function mbDrawIsoDiagram(marks, nBends, total) {
     x: (p.x - p.y) * cos30 + p.z * 0.5,
     y: (p.x + p.y) * sin30 - p.z * 0.3,
   });
-  const pProj = pts.map(proj);
+  const pProjRaw = pts.map(proj);
 
-  // Reference centerline (what the run would look like without lateral drift).
-  const baseProj = [proj({ x: 0, y: 0, z: 0 }), proj({ x: total, y: 0, z: 0 })];
+  // Follow-pipe camera in travel mode: rotate so START->SLUT becomes the visual forward axis.
+  const followPipeCamera = mbIsoRefMode === 'travel';
+  const startRaw = pProjRaw[0];
+  const endRaw = pProjRaw[pProjRaw.length - 1];
+  const routeCenter = {
+    x: (startRaw.x + endRaw.x) / 2,
+    y: (startRaw.y + endRaw.y) / 2,
+  };
+  const routeDx = endRaw.x - startRaw.x;
+  const routeDy = endRaw.y - startRaw.y;
+  const camRot = followPipeCamera ? -Math.atan2(routeDy, routeDx) : 0;
+  const c = Math.cos(camRot);
+  const s = Math.sin(camRot);
+  const rotAroundRoute = (p) => {
+    const rx = p.x - routeCenter.x;
+    const ry = p.y - routeCenter.y;
+    return {
+      x: routeCenter.x + (rx * c - ry * s),
+      y: routeCenter.y + (rx * s + ry * c),
+    };
+  };
+
+  const pProj = pProjRaw.map(rotAroundRoute);
+  const baseProj = [
+    rotAroundRoute(proj({ x: 0, y: 0, z: 0 })),
+    rotAroundRoute(proj({ x: total, y: 0, z: 0 })),
+  ];
 
   let pMinX = Infinity, pMinY = Infinity, pMaxX = -Infinity, pMaxY = -Infinity;
   pProj.forEach(p => {
@@ -2618,17 +2632,27 @@ function mbDrawIsoDiagram(marks, nBends, total) {
     if (p.x > pMaxX) pMaxX = p.x;
     if (p.y > pMaxY) pMaxY = p.y;
   });
+  const width = Math.max(1, pMaxX - pMinX);
+  const height = Math.max(1, pMaxY - pMinY);
 
   const pad = 24;
   const drawW = W - pad * 2;
   const drawH = H - 68;
-  const sx = drawW / Math.max(1, pMaxX - pMinX);
-  const sy = drawH / Math.max(1, pMaxY - pMinY);
+  const PADDING_RATIO = 0.25;
+  const MIN_SPREAD = 500;
+  const effW = Math.max(width * (1 + PADDING_RATIO), MIN_SPREAD);
+  const effH = Math.max(height * (1 + PADDING_RATIO), MIN_SPREAD * 0.45);
+  const sx = drawW / effW;
+  const sy = drawH / effH;
   const scale = Math.min(sx, sy);
 
-  const tx = pad - pMinX * scale;
-  const ty = 34 - pMinY * scale;
-  const map = (p) => ({ x: p.x * scale + tx, y: p.y * scale + ty });
+  // Center around route midpoint (START->SLUT), not just bbox center.
+  const drawCx = pad + drawW / 2;
+  const drawCy = 34 + drawH / 2;
+  const map = (p) => ({
+    x: drawCx + (p.x - routeCenter.x) * scale,
+    y: drawCy + (p.y - routeCenter.y) * scale,
+  });
 
   let html = '';
   const modeLabel = mbIsoRefMode === 'travel' ? 'FÖLJ RÖRET FRAMÅT' : 'VISA FRÅN SIDAN';
@@ -2638,6 +2662,8 @@ function mbDrawIsoDiagram(marks, nBends, total) {
   const b1 = map(baseProj[1]);
   html += `<line x1="${b0.x}" y1="${b0.y}" x2="${b1.x}" y2="${b1.y}" stroke="#6f7b74" stroke-width="1" stroke-dasharray="4,3" opacity="0.35"/>`;
   html += `<text x="${(b0.x + b1.x) / 2}" y="${(b0.y + b1.y) / 2 - 6}" fill="#6f7b74" font-family="${MONO}" font-size="7" text-anchor="middle" opacity="0.8">centerlinje referens</text>`;
+  html += `<line x1="${b0.x}" y1="${b0.y}" x2="${b1.x}" y2="${b1.y}" stroke="#8ea79a" stroke-width="1" opacity="0.4"/>`;
+  html += `<polygon points="${b1.x},${b1.y} ${b1.x-6},${b1.y-3} ${b1.x-6},${b1.y+3}" fill="#8ea79a" opacity="0.6"/>`;
 
   // Draw projected segments, color-coded by NEXT bend direction.
   // Segment i gets color from bend i (R/L) at its end. Last segment is neutral.
