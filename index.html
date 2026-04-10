@@ -861,7 +861,7 @@
       </svg>
     </div>
     <div>
-      <h1>RÖRBOCK <span>// PIPE BENDING CALCULATOR v0.4.1</span></h1>
+      <h1>RÖRBOCK <span>// PIPE BENDING CALCULATOR v0.4.2</span></h1>
     </div>
   </header>
 
@@ -2257,6 +2257,7 @@ function mbComputeMarks(segs, bd) {
 }
 
 function mbCalculate() {
+  mbSetIsoRef('travel');
   const bd      = mbGetBendDeduction();
   const nBends  = mbSegments.length - 1;
   const marks   = mbComputeMarks(mbSegments, bd);
@@ -2588,43 +2589,65 @@ function mbDrawIsoDiagram(marks, nBends, total) {
     }
   }
 
-  // Isometric projection helper + depth separation in screen space
+  // Normalize depth so mirrored patterns (L-R-L vs R-L-R) stay visually centered.
+  let zMin = Infinity, zMax = -Infinity;
+  pts.forEach((p) => {
+    if (p.z < zMin) zMin = p.z;
+    if (p.z > zMax) zMax = p.z;
+  });
+  const zMid = (zMin + zMax) / 2;
+  const ptsNorm = pts.map((p) => ({ x: p.x, y: p.y, z: p.z - zMid }));
+
   const cos30 = Math.cos(Math.PI / 6);
   const sin30 = Math.sin(Math.PI / 6);
-  const proj = (p) => ({
+  const isoProj = (p) => ({
     x: (p.x - p.y) * cos30 + p.z * 0.5,
     y: (p.x + p.y) * sin30 - p.z * 0.3,
   });
-  const pProjRaw = pts.map(proj);
 
-  // Follow-pipe camera in travel mode: rotate so START->SLUT becomes the visual forward axis.
+  // Follow-pipe camera in travel mode: align route to +X and keep L/R as screen-sideways.
   const followPipeCamera = mbIsoRefMode === 'travel';
-  const startRaw = pProjRaw[0];
-  const endRaw = pProjRaw[pProjRaw.length - 1];
-  const routeCenter = {
-    x: (startRaw.x + endRaw.x) / 2,
-    y: (startRaw.y + endRaw.y) / 2,
+  const startModel = ptsNorm[0];
+  const endModel = ptsNorm[ptsNorm.length - 1];
+  const routeCenterModel = {
+    x: (startModel.x + endModel.x) / 2,
+    y: (startModel.y + endModel.y) / 2,
   };
-  const routeDx = endRaw.x - startRaw.x;
-  const routeDy = endRaw.y - startRaw.y;
-  const camRot = followPipeCamera ? -Math.atan2(routeDy, routeDx) : 0;
-  const c = Math.cos(camRot);
-  const s = Math.sin(camRot);
-  const rotAroundRoute = (p) => {
-    const rx = p.x - routeCenter.x;
-    const ry = p.y - routeCenter.y;
+  const routeAngle = Math.atan2(endModel.y - startModel.y, endModel.x - startModel.x);
+  const rc = Math.cos(-routeAngle);
+  const rs = Math.sin(-routeAngle);
+  const alignToRoute = (p) => {
+    const rx = p.x - routeCenterModel.x;
+    const ry = p.y - routeCenterModel.y;
     return {
-      x: routeCenter.x + (rx * c - ry * s),
-      y: routeCenter.y + (rx * s + ry * c),
+      x: rx * rc - ry * rs,
+      y: rx * rs + ry * rc,
+      z: p.z,
     };
   };
 
-  const pProj = pProjRaw.map(rotAroundRoute);
-  const baseProj = [
-    rotAroundRoute(proj({ x: 0, y: 0, z: 0 })),
-    rotAroundRoute(proj({ x: total, y: 0, z: 0 })),
-  ];
+  const followProj = (p) => ({
+    // Forward axis is slightly oblique, side axis stays mostly horizontal for intuitive L/R reading.
+    x: p.x * 0.92 + p.y * 1.0 + p.z * 0.28,
+    y: p.x * 0.28 - p.z * 0.18,
+  });
 
+  const pProj = followPipeCamera
+    ? ptsNorm.map(alignToRoute).map(followProj)
+    : ptsNorm.map(isoProj);
+  const baseProj = followPipeCamera
+    ? [
+        followProj(alignToRoute({ x: 0, y: 0, z: 0 })),
+        followProj(alignToRoute({ x: total, y: 0, z: 0 })),
+      ]
+    : [isoProj({ x: 0, y: 0, z: 0 }), isoProj({ x: total, y: 0, z: 0 })];
+
+  const routeStartProj = baseProj[0];
+  const routeEndProj = baseProj[1];
+  const dirProj = {
+    x: routeEndProj.x - routeStartProj.x,
+    y: routeEndProj.y - routeStartProj.y,
+  };
   let pMinX = Infinity, pMinY = Infinity, pMaxX = -Infinity, pMaxY = -Infinity;
   pProj.forEach(p => {
     if (p.x < pMinX) pMinX = p.x;
@@ -2632,6 +2655,7 @@ function mbDrawIsoDiagram(marks, nBends, total) {
     if (p.x > pMaxX) pMaxX = p.x;
     if (p.y > pMaxY) pMaxY = p.y;
   });
+
   const width = Math.max(1, pMaxX - pMinX);
   const height = Math.max(1, pMaxY - pMinY);
 
@@ -2646,12 +2670,15 @@ function mbDrawIsoDiagram(marks, nBends, total) {
   const sy = drawH / effH;
   const scale = Math.min(sx, sy);
 
-  // Center around route midpoint (START->SLUT), not just bbox center.
+  // Center along the route direction rather than only on raw bbox.
+  const centerRef = followPipeCamera
+    ? { x: routeStartProj.x + dirProj.x * 0.5, y: routeStartProj.y + dirProj.y * 0.5 }
+    : { x: (pMinX + pMaxX) / 2, y: (pMinY + pMaxY) / 2 };
   const drawCx = pad + drawW / 2;
   const drawCy = 34 + drawH / 2;
   const map = (p) => ({
-    x: drawCx + (p.x - routeCenter.x) * scale,
-    y: drawCy + (p.y - routeCenter.y) * scale,
+    x: drawCx + (p.x - centerRef.x) * scale,
+    y: drawCy + (p.y - centerRef.y) * scale,
   });
 
   let html = '';
