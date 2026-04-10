@@ -131,6 +131,18 @@ Nedan visas hur krav kan harledas till konkreta delar i appen.
 
 ## Releasehistorik
 
+Version v0.4.3:
+- Refactor: central `projectPoint()` funktion för konsekvent z-inversion i side-view
+- Side-view (Visa från sidan): 45° roterad vänster för bättre perspektiv
+- Side-view: spegelvänd perspektiv (X och Y inverterade) för "bakom"-vy
+- Versionstring i header uppdaterad till v0.4.3
+
+Version v0.4.2:
+- Auto-select travel-mode (Följ röret framåt) vid beräkna märken
+- Isometrisk zoomfix: borttagen BIAS och NORMAL_BOOST för korrekt bounding box
+- Riktningsmedveten centrering: route midpoint istället för bbox center
+- Side-view depth direction: negerad z i isoProj för korrekt djupframställning
+
 Version v0.4.1:
 - Isometrisk flerboj-vy har separat visualisering for riktningslogik.
 - Segment i isometrisk vy ar fargkodade efter nasta bojriktning (L/R).

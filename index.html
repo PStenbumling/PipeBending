@@ -1221,7 +1221,7 @@
       </div>
       <div class="mb-seg-actions">
         <button type="button" class="mb-add-btn" onclick="mbAddSegment()">+ Lägg till sträcka</button>
-        <button type="button" class="mb-add-btn" onclick="mbPresetUBend()">U-bockläge (R-L-R)</button>
+        <button type="button" class="mb-add-btn" onclick="mbPresetUBend()">U-bockläge (4 bockar)</button>
       </div>
 
       <!-- Stock length -->
@@ -1311,12 +1311,7 @@
           <svg id="mb-diagram" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
 
-        <div class="section-label mb-diagram-label">Isometrisk riktningsvy — följ röret framåt (L/R)</div>
-        <div class="mode-toggle mb-iso-ref-toggle">
-          <button type="button" class="mode-btn active" id="mb-iso-ref-travel" onclick="mbSetIsoRef('travel')">Följ röret framåt</button>
-          <button type="button" class="mode-btn" id="mb-iso-ref-side" onclick="mbSetIsoRef('side')">Visa från sidan</button>
-        </div>
-        <div class="hint">Riktning gäller i färdriktning från START.</div>
+        <div class="section-label mb-diagram-label">Riktningsvy — böjmönster uppifrån</div>
         <div class="mb-diagram-wrap">
           <svg id="mb-iso-diagram" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
@@ -2221,9 +2216,10 @@ function mbAddSegment() {
 }
 
 function mbPresetUBend() {
-  // Typical U-shape travel sequence: Right -> Left -> Right
-  mbSegments = [300, 220, 300, 220];
-  mbDirs     = ['R', 'L', 'R'];
+  // 4-bend U: R-L-L-R makes a rectangular bypass returning to original direction
+  // → böj R (ned) → parallellt → böj L (rätt) → tvärs → böj L (upp) → böj R (rätt igen)
+  mbSegments = [300, 220, 300, 220, 300];
+  mbDirs     = ['R', 'L', 'L', 'R'];
 
   // U-bends are commonly 90° in this workflow.
   document.getElementById('mb-angle').value = 90;
@@ -2240,10 +2236,6 @@ let mbLastMarks = [], mbLastNBends = 0, mbLastTotal = 0;
 
 function mbSetIsoRef(mode) {
   mbIsoRefMode = mode === 'side' ? 'side' : 'travel';
-  const bTravel = document.getElementById('mb-iso-ref-travel');
-  const bSide   = document.getElementById('mb-iso-ref-side');
-  if (bTravel) bTravel.classList.toggle('active', mbIsoRefMode === 'travel');
-  if (bSide)   bSide.classList.toggle('active', mbIsoRefMode === 'side');
   if (mbLastTotal > 0) mbDrawIsoDiagram(mbLastMarks, mbLastNBends, mbLastTotal);
 }
 
@@ -2546,203 +2538,140 @@ function mbDrawIsoDiagram(marks, nBends, total) {
   if (!svg) return;
 
   const W = svg.parentElement.clientWidth || 600;
-  const H = 220;
+  const H = 200;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.setAttribute('height', H);
 
   const MONO = 'Share Tech Mono';
-  const PIPE = '#7ccf93';
-  const COL_L = '#6ab0f0';
-  const COL_R = '#f06a90';
-  const COL_N = '#7ccf93';
-  const AXIS = '#3a4a35';
-  const TXT  = '#9db7a2';
+  const COL_L = '#6ab0f0', COL_R = '#f06a90', COL_LAST = '#7ccf93';
+  const TXT = '#7a9a80';
 
   const nSegs = mbSegments.length;
-  if (!nSegs || total <= 0) {
-    svg.innerHTML = '';
-    return;
-  }
+  if (!nSegs || total <= 0) { svg.innerHTML = ''; return; }
 
-  // Build path using vector + left-normal logic (robust L/R semantics).
-  // travel mode = plumber reference (from START forward)
-  // side mode   = visual/debug reference (mirrored left/right)
-  const pts = [{ x: 0, y: 0, z: 0 }];
-  const depthStep = Math.max(40, Math.min(110, total * 0.08));
-  let heading = { x: 1, y: 0 }; // start direction = +X
-  let x = 0, y = 0, z = 0;
+  // Build 2D plan path.
+  // Start direction = RIGHT (+x on screen). L = screen-up (y−), R = screen-down (y+).
+  // This matches "in the direction of travel, L = your left hand".
+  let hx = 1, hy = 0; // heading
+  let x = 0, y = 0;
+  const pts = [{ x, y }];
 
   for (let i = 0; i < nSegs; i++) {
     const seg = mbSegments[i] || 0;
-    x += heading.x * seg;
-    y += heading.y * seg;
-    pts.push({ x, y, z });
-
+    x += hx * seg;
+    y += hy * seg;
+    pts.push({ x, y });
     if (i < nBends) {
       const dir = mbDirs[i] || 'L';
-      const leftNormal = { x: -heading.y, y: heading.x };
-      // In side/debug mode we intentionally mirror interpretation.
-      const useLeft = mbIsoRefMode === 'travel' ? (dir === 'L') : (dir === 'R');
-      heading = useLeft
-        ? leftNormal
-        : { x: -leftNormal.x, y: -leftNormal.y };
-
-      // Small plane separation to avoid visual collapse in alternating patterns.
-      const zSign = useLeft ? 1 : -1;
-      z += zSign * depthStep;
+      // SVG y-axis goes DOWN. "Left hand" when heading right = up on screen.
+      // L: (hx,hy) → (hy, -hx)   e.g. right(1,0)→up(0,-1)  ✓
+      // R: (hx,hy) → (-hy, hx)   e.g. right(1,0)→down(0,1) ✓
+      if (dir === 'L') { const t = hx; hx = hy;  hy = -t; }
+      else             { const t = hx; hx = -hy; hy =  t; }
     }
   }
 
-  // Normalize depth so mirrored patterns (L-R-L vs R-L-R) stay visually centered.
-  let zMin = Infinity, zMax = -Infinity;
-  pts.forEach((p) => {
-    if (p.z < zMin) zMin = p.z;
-    if (p.z > zMax) zMax = p.z;
+  // ── Oblique projection: pipe goes INTO the scene (away from viewer) ──────
+  // World: px = forward (initial direction), py = lateral (L=neg, R=pos in SVG)
+  // Screen: forward → upper-right (depth), lateral → flat left/right
+  // FX/FY = screen vector for forward unit; LX/LY = screen vector for lateral unit
+  const FX = 0.20, FY = -0.30;  // forward = slightly upper-right (shallow angle)
+  const LX = 1.00, LY =  0.08; // lateral = mostly horizontal, slight tilt
+
+  function oblique(p) {
+    return { x: p.x * FX + p.y * LX, y: p.x * FY + p.y * LY };
+  }
+
+  // Auto-fit
+  const oProj = pts.map(oblique);
+  let mnx = Infinity, mxx = -Infinity, mny = Infinity, mxy = -Infinity;
+  oProj.forEach(p => {
+    mnx=Math.min(mnx,p.x); mxx=Math.max(mxx,p.x);
+    mny=Math.min(mny,p.y); mxy=Math.max(mxy,p.y);
   });
-  const zMid = (zMin + zMax) / 2;
-  const ptsNorm = pts.map((p) => ({ x: p.x, y: p.y, z: p.z - zMid }));
-
-  const cos30 = Math.cos(Math.PI / 6);
-  const sin30 = Math.sin(Math.PI / 6);
-
-  // Central projection function — handles z inversion for side-mode consistently.
-  const projectPoint = (p, mode) => {
-    if (mode === 'travel') {
-      // Travel-mode: follow-pipe camera (z affects both axes, positive = toward camera).
-      return {
-        x: p.x * 0.92 + p.y * 1.0 + p.z * 0.28,
-        y: p.x * 0.28 - p.z * 0.18,
-      };
-    } else {
-      // Side-mode: isometric projection, z inverted + x,y inverted for "behind" mirror perspective.
-      const z = -p.z;
-      const x = -p.x;
-      const y = -p.y;
-      return {
-        x: (x - y) * cos30 + z * 0.5,
-        y: (x + y) * sin30 - z * 0.3,
-      };
-    }
-  };
-
-  // Follow-pipe camera in travel mode: align route to +X and keep L/R as screen-sideways.
-  const followPipeCamera = mbIsoRefMode === 'travel';
-  const startModel = ptsNorm[0];
-  const endModel = ptsNorm[ptsNorm.length - 1];
-  const routeCenterModel = {
-    x: (startModel.x + endModel.x) / 2,
-    y: (startModel.y + endModel.y) / 2,
-  };
-  const routeAngle = Math.atan2(endModel.y - startModel.y, endModel.x - startModel.x);
-  const rc = Math.cos(-routeAngle);
-  const rs = Math.sin(-routeAngle);
-  const alignToRoute = (p) => {
-    const rx = p.x - routeCenterModel.x;
-    const ry = p.y - routeCenterModel.y;
-    return {
-      x: rx * rc - ry * rs,
-      y: rx * rs + ry * rc,
-      z: p.z,
-    };
-  };
-
-  const pProj = followPipeCamera
-    ? ptsNorm.map(alignToRoute).map(p => projectPoint(p, 'travel'))
-    : ptsNorm.map(p => projectPoint(p, 'side'));
-  const baseProj = followPipeCamera
-    ? [
-        projectPoint(alignToRoute({ x: 0, y: 0, z: 0 }), 'travel'),
-        projectPoint(alignToRoute({ x: total, y: 0, z: 0 }), 'travel'),
-      ]
-    : [projectPoint({ x: 0, y: 0, z: 0 }, 'side'), projectPoint({ x: total, y: 0, z: 0 }, 'side')];
-  const routeStartProj = baseProj[0];
-  const routeEndProj = baseProj[1];
-  const dirProj = {
-    x: routeEndProj.x - routeStartProj.x,
-    y: routeEndProj.y - routeStartProj.y,
-  };
-  let pMinX = Infinity, pMinY = Infinity, pMaxX = -Infinity, pMaxY = -Infinity;
-  pProj.forEach(p => {
-    if (p.x < pMinX) pMinX = p.x;
-    if (p.y < pMinY) pMinY = p.y;
-    if (p.x > pMaxX) pMaxX = p.x;
-    if (p.y > pMaxY) pMaxY = p.y;
-  });
-
-  const width = Math.max(1, pMaxX - pMinX);
-  const height = Math.max(1, pMaxY - pMinY);
-
-  const pad = 24;
-  const drawW = W - pad * 2;
-  const drawH = H - 68;
-  const PADDING_RATIO = 0.25;
-  const MIN_SPREAD = 500;
-  const effW = Math.max(width * (1 + PADDING_RATIO), MIN_SPREAD);
-  const effH = Math.max(height * (1 + PADDING_RATIO), MIN_SPREAD * 0.45);
-  const sx = drawW / effW;
-  const sy = drawH / effH;
-  const scale = Math.min(sx, sy);
-
-  // Center along the route direction rather than only on raw bbox.
-  const centerRef = followPipeCamera
-    ? { x: routeStartProj.x + dirProj.x * 0.5, y: routeStartProj.y + dirProj.y * 0.5 }
-    : { x: (pMinX + pMaxX) / 2, y: (pMinY + pMaxY) / 2 };
-  const drawCx = pad + drawW / 2;
-  const drawCy = 34 + drawH / 2;
-  const map = (p) => ({
-    x: drawCx + (p.x - centerRef.x) * scale,
-    y: drawCy + (p.y - centerRef.y) * scale,
-  });
+  const pad = 36;
+  const rangeX = Math.max(mxx-mnx, 1), rangeY = Math.max(mxy-mny, 1);
+  const sc = Math.min((W-pad*2)/rangeX, (H-pad*2-24)/rangeY) * 0.78;
+  const cx = (mnx+mxx)/2, cy = (mny+mxy)/2;
+  const ox = W/2 - cx*sc, oy = (H-24)/2 - cy*sc + 14;
+  const mp = p => ({ x: p.x*sc + ox, y: p.y*sc + oy });
+  const mpp = oProj.map(mp);
 
   let html = '';
-  const modeLabel = mbIsoRefMode === 'travel' ? 'FÖLJ RÖRET FRAMÅT' : 'VISA FRÅN SIDAN';
-  html += `<text x="${pad}" y="14" fill="${TXT}" font-family="${MONO}" font-size="8" text-anchor="start">ISOMETRISK RIKTNINGSVY (${modeLabel})</text>`;
+  html += `<text x="${W/2}" y="11" fill="${TXT}" font-family="${MONO}" font-size="8" text-anchor="middle" opacity="0.6">röret går bort från dig · L = vänster hand · R = höger hand</text>`;
 
-  const b0 = map(baseProj[0]);
-  const b1 = map(baseProj[1]);
-  html += `<line x1="${b0.x}" y1="${b0.y}" x2="${b1.x}" y2="${b1.y}" stroke="#6f7b74" stroke-width="1" stroke-dasharray="4,3" opacity="0.35"/>`;
-  html += `<text x="${(b0.x + b1.x) / 2}" y="${(b0.y + b1.y) / 2 - 6}" fill="#6f7b74" font-family="${MONO}" font-size="7" text-anchor="middle" opacity="0.8">centerlinje referens</text>`;
-  html += `<line x1="${b0.x}" y1="${b0.y}" x2="${b1.x}" y2="${b1.y}" stroke="#8ea79a" stroke-width="1" opacity="0.4"/>`;
-  html += `<polygon points="${b1.x},${b1.y} ${b1.x-6},${b1.y-3} ${b1.x-6},${b1.y+3}" fill="#8ea79a" opacity="0.6"/>`;
-
-  // Draw projected segments, color-coded by NEXT bend direction.
-  // Segment i gets color from bend i (R/L) at its end. Last segment is neutral.
-  const pp = pProj.map(map);
-  for (let i = 0; i < pp.length - 1; i++) {
-    const nextDir = i < nBends ? (mbDirs[i] || 'L') : null;
-    const segCol  = nextDir === 'L' ? COL_L : (nextDir === 'R' ? COL_R : COL_N);
-    html += `<line x1="${pp[i].x}" y1="${pp[i].y}" x2="${pp[i + 1].x}" y2="${pp[i + 1].y}"
-      stroke="${segCol}" stroke-width="4" stroke-linecap="round"/>`;
+  // Grid floor lines for depth feel
+  const p0 = mpp[0];
+  for (let g = 0; g <= 4; g++) {
+    const gx = p0.x - 80 + g*40;
+    const gy1 = p0.y, gy2 = p0.y - 120;
+    const gxEnd = gx + 80;
+    html += `<line x1="${gx}" y1="${gy1}" x2="${(gx + FX/Math.abs(FY)*120)}" y2="${gy2}"
+      stroke="#1e2e22" stroke-width="1" opacity="0.7"/>`;
+  }
+  // Horizontal grid lines
+  for (let g = 0; g <= 3; g++) {
+    const gy = p0.y - g*40;
+    html += `<line x1="${p0.x-80}" y1="${gy}" x2="${p0.x+80}" y2="${gy}"
+      stroke="#1e2e22" stroke-width="1" opacity="0.5"/>`;
   }
 
-  // Start/end markers
-  html += `<circle cx="${pp[0].x}" cy="${pp[0].y}" r="4" fill="#e8a020"/>`;
-  html += `<circle cx="${pp[pp.length-1].x}" cy="${pp[pp.length-1].y}" r="4" fill="#5fcf80"/>`;
-  html += `<text x="${pp[0].x}" y="${pp[0].y + 14}" fill="#e8a020" font-family="${MONO}" font-size="8" text-anchor="middle">START</text>`;
-  html += `<text x="${pp[pp.length-1].x}" y="${pp[pp.length-1].y + 14}" fill="#5fcf80" font-family="${MONO}" font-size="8" text-anchor="middle">SLUT</text>`;
+  // Draw segments
+  for (let i = 0; i < mpp.length-1; i++) {
+    const a = mpp[i], b = mpp[i+1];
+    const isLast = i === mpp.length-2;
+    const col = isLast ? COL_LAST : (mbDirs[i]==='L' ? COL_L : COL_R);
+    html += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}"
+      stroke="rgba(0,0,0,0.55)" stroke-width="10" stroke-linecap="round"/>`;
+    html += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}"
+      stroke="${col}" stroke-width="5" stroke-linecap="round"/>`;
+    // Highlight on top for tube feel
+    html += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}"
+      stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"/>`;
+  }
 
-  // Bend labels (M1.. + L/R)
+  // Bend markers + labels
   for (let i = 1; i <= nBends; i++) {
-    const p = pp[i];
-    const dir = mbDirs[i - 1] || 'L';
-    const col = dir === 'L' ? '#6ab0f0' : '#f06a90';
-    const t = dir === 'L' ? '◄ L' : 'R ►';
-    html += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${col}"/>`;
-    html += `<text x="${p.x + 6}" y="${p.y - 6}" fill="${col}" font-family="${MONO}" font-size="8" text-anchor="start">M${i} ${t}</text>`;
+    const p = mpp[i];
+    const dir = mbDirs[i-1] || 'L';
+    const col = dir === 'L' ? COL_L : COL_R;
+    const lbl = dir === 'L' ? '◄ L' : 'R ►';
+    html += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="6" fill="#0a1210" stroke="${col}" stroke-width="2"/>`;
+    // Place label opposite the incoming direction
+    const inp = oProj[i-1], outp = oProj[i];
+    const dx = outp.x - inp.x, dy = outp.y - inp.y;
+    const dl = Math.hypot(dx,dy)||1;
+    const nx = -dy/dl, ny = dx/dl; // perpendicular
+    const lx = p.x + nx*16, ly = p.y + ny*16 + 3;
+    html += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="${col}"
+      font-family="${MONO}" font-size="8" text-anchor="middle">M${i} ${lbl}</text>`;
   }
 
-  // Direction arrow and sequence text
-  const seq = mbDirs.slice(0, nBends).join('-') || '-';
-  const netSide = pts[pts.length - 1].y - pts[0].y;
-  const ay = H - 22;
-  html += `<line x1="${pad}" y1="${ay}" x2="${pad + 70}" y2="${ay}" stroke="${AXIS}" stroke-width="1.5"/>`;
-  html += `<polygon points="${pad + 70},${ay} ${pad + 64},${ay - 3} ${pad + 64},${ay + 3}" fill="${AXIS}"/>`;
-  html += `<text x="${pad + 78}" y="${ay + 3}" fill="${TXT}" font-family="${MONO}" font-size="8" text-anchor="start">färdriktning</text>`;
-  html += `<text x="${W - pad}" y="${ay + 3}" fill="${TXT}" font-family="${MONO}" font-size="8" text-anchor="end">sekvens: ${seq}</text>`;
-  html += `<text x="${W - pad}" y="${ay - 10}" fill="${TXT}" font-family="${MONO}" font-size="7" text-anchor="end">netto sidoförskjutning: ${Math.round(netSide)} mm</text>`;
-  html += `<text x="${pad}" y="${ay - 10}" fill="${COL_L}" font-family="${MONO}" font-size="7" text-anchor="start">bla = nästa böj L</text>`;
-  html += `<text x="${pad + 92}" y="${ay - 10}" fill="${COL_R}" font-family="${MONO}" font-size="7" text-anchor="start">rosa = nästa böj R</text>`;
-  html += `<text x="${pad + 190}" y="${ay - 10}" fill="${PIPE}" font-family="${MONO}" font-size="7" text-anchor="start">grön = slutsträcka</text>`;
+  // START cap + direction arrow
+  const ps = mpp[0];
+  const startDir = oProj[1] ? { x: oProj[1].x-oProj[0].x, y: oProj[1].y-oProj[0].y } : {x:1,y:0};
+  const sl = Math.hypot(startDir.x, startDir.y)||1;
+  const asx = startDir.x/sl*18*sc/Math.max(sc,1), asy = startDir.y/sl*18*sc/Math.max(sc,1);
+  // Just a simple arrow normalized to screen
+  const arx = startDir.x/sl*16, ary = startDir.y/sl*16;
+  html += `<line x1="${ps.x.toFixed(1)}" y1="${ps.y.toFixed(1)}" x2="${(ps.x+arx).toFixed(1)}" y2="${(ps.y+ary).toFixed(1)}"
+    stroke="#e8a020" stroke-width="3" marker-end="url(#arr)"/>`;
+  html += `<circle cx="${ps.x.toFixed(1)}" cy="${ps.y.toFixed(1)}" r="5" fill="#e8a020"/>`;
+  html += `<text x="${ps.x.toFixed(1)}" y="${(ps.y+16).toFixed(1)}" fill="#e8a020" font-family="${MONO}" font-size="8" text-anchor="middle">START</text>`;
+
+  // SLUT
+  const pe = mpp[mpp.length-1];
+  html += `<circle cx="${pe.x.toFixed(1)}" cy="${pe.y.toFixed(1)}" r="5" fill="${COL_LAST}"/>`;
+  html += `<text x="${pe.x.toFixed(1)}" y="${(pe.y+16).toFixed(1)}" fill="${COL_LAST}" font-family="${MONO}" font-size="8" text-anchor="middle">SLUT</text>`;
+
+  // Legend
+  const seq = mbDirs.slice(0, nBends).join('-') || '—';
+  const ly = H - 8;
+  html += `<rect x="8" y="${ly-9}" width="10" height="6" rx="1" fill="${COL_L}"/>`;
+  html += `<text x="22" y="${ly}" fill="${COL_L}" font-family="${MONO}" font-size="8">L = vänster</text>`;
+  html += `<rect x="110" y="${ly-9}" width="10" height="6" rx="1" fill="${COL_R}"/>`;
+  html += `<text x="124" y="${ly}" fill="${COL_R}" font-family="${MONO}" font-size="8">R = höger</text>`;
+  html += `<text x="${W-8}" y="${ly}" fill="${TXT}" font-family="${MONO}" font-size="8" text-anchor="end">sekvens: ${seq}</text>`;
 
   svg.innerHTML = html;
 }
