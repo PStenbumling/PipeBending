@@ -203,6 +203,12 @@ Funktioner som saknas baserat på rörmokarpraktik:
 
 ## Releasehistorik
 
+### v0.5.3
+- Auditfix: Bananböj använder empiriskt böjavdrag vid Fromax + 90° (`MB_EMPIRICAL_90`) istället för CLR-formel
+- Auditfix: S-böj `Rör före M1` korrigerad label/hint (ej sammanblandad med `Längd längs vägg`)
+- Auditfix: S-böj kräver endast sidmått för beräkning; `Rör före M1` är frivillig och kan vara tom (= 0)
+- UX-fix: S-böj varningar visar bara åtgärder användaren faktiskt kan göra (vinkel/sidmått)
+
 ### v0.5.1
 - S-böj uppgraderad till guidat assistentläge (intent, live-guidning, förslag + auto-fix)
 - Realtidsfeedback vid ändring av S-böj-indata (inte bara via Beräkna-knapp)

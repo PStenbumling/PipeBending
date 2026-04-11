@@ -1507,9 +1507,9 @@
           <div class="hint">Parallell förskjutning [mm]</div>
         </div>
         <div class="field">
-          <label for="sb-m1">Längd längs väggen</label>
+          <label for="sb-m1">Rör före M1</label>
           <input type="number" id="sb-m1" value="100" min="0" step="1" oninput="sbLiveUpdate()">
-          <div class="hint">Från rörände till första böjmärket [mm]</div>
+          <div class="hint">Rörände → första böjmärket [mm] (kan lämnas tomt = 0)</div>
         </div>
         <div class="field">
           <label for="sb-end">Rör efter M2</label>
@@ -3089,8 +3089,11 @@ function calculate(forceShow = false) {
     L         = Math.sqrt(D*D + H_diag*H_diag);
   }
 
-  // Bend deduction: material that gets "used up" in the bend arc
-  const bendDeduction = clr * (1 - Math.cos(alpha_rad));
+  // Bend deduction: empirical for Fromax 90°, CLR-based for other cases
+  const isEmpirical90 = bendTool === 'fromax' && Math.abs(alpha_deg - 90) < 0.0001 && MB_EMPIRICAL_90[dia] !== undefined;
+  const bendDeduction = isEmpirical90
+    ? MB_EMPIRICAL_90[dia]
+    : clr * (1 - Math.cos(alpha_rad));
 
   // ONE BEND formula: kapa = M1 + L + instA − bend_deduction  (M1 measured from H-stycke end)
   const kapa = M1 + L + instA - bendDeduction;
@@ -3125,8 +3128,9 @@ function calculate(forceShow = false) {
   }
   document.getElementById('f3').innerHTML =
     `M1 = <em>${fmt(M1,0)} mm</em> från överkant (instick ${fmt(instB,0)}mm i H + fri ${fmt(freeBefore,1)}mm)`;
-  document.getElementById('f3b').innerHTML =
-    `CLR×(1−cos ${fmt(alpha_deg,1)}°) = ${fmt(clr,0)}×${fmt(1-Math.cos(alpha_rad),3)} = <em>−${fmt(bendDeduction,1)} mm</em>`;
+  document.getElementById('f3b').innerHTML = isEmpirical90
+    ? `Empiriskt böjavdrag (Fromax 90°) = <em>−${fmt(bendDeduction,1)} mm</em>`
+    : `CLR×(1−cos ${fmt(alpha_deg,1)}°) = ${fmt(clr,0)}×${fmt(1-Math.cos(alpha_rad),3)} = <em>−${fmt(bendDeduction,1)} mm</em>`;
   document.getElementById('f4').innerHTML =
     `${fmt(M1,0)} + ${fmt(L,1)} + ${fmt(instA,0)} − ${fmt(bendDeduction,1)} = <em>${fmt(kapa,1)} mm</em>`;
 
@@ -3154,7 +3158,7 @@ function calculate(forceShow = false) {
   // ── Marks table ───────────────────────────────────────────────────────
   let rows = '';
   rows += `<tr><td>Rör att kapa</td><td>${fmt(kapa,0)} mm</td><td>Rörkniv/kapmaskin</td></tr>`;
-  rows += `<tr><td>Böjkorrigering (CLR=${fmt(clr,0)})</td><td>−${fmt(bendDeduction,1)} mm</td><td>Ingår i kapa</td></tr>`;
+  rows += `<tr><td>${isEmpirical90 ? 'Böjkorrigering (empiriskt 90°)' : `Böjkorrigering (CLR=${fmt(clr,0)})`}</td><td>−${fmt(bendDeduction,1)} mm</td><td>Ingår i kapa</td></tr>`;
   rows += `<tr><td>M1 — Bockningsmärke</td><td>${fmt(M1,0)} mm</td><td>Böj till ${springbackAngle}° (fjädring +${springback}°) — mäts från H-stycke-änden (överkant)</td></tr>`;
   rows += `<tr><td>Instick A (T-koppling)</td><td>${fmt(instA,0)} mm</td><td>Underkant in i T-koppling (diagonalt)</td></tr>`;
   rows += `<tr><td>Instick B (H-stycke)</td><td>${fmt(instB,0)} mm</td><td>Överkant in i H-stycke (rakt)</td></tr>`;
@@ -3507,11 +3511,10 @@ function sbSetIntent() {
   const sideRaw = document.getElementById('sb-offset').value.trim();
   const wallRaw = document.getElementById('sb-m1').value.trim();
   const sideLabel = UX_LABELS.D.split(' (')[0].toLowerCase();
-  const wallLabel = UX_LABELS.H.toLowerCase();
 
   if (!sideRaw && !wallRaw) {
-    el.textContent = `Vad vill du göra? Börja med ${sideLabel} och ${wallLabel}.`;
-  } else if (!sideRaw || !wallRaw) {
+    el.textContent = `Vad vill du göra? Börja med ${sideLabel}.`;
+  } else if (!sideRaw) {
     el.textContent = 'Du håller på att flytta röret i sidled (S-böj)';
   } else {
     el.textContent = 'Redo att räkna S-böj';
@@ -3575,16 +3578,11 @@ function sbCalculate() {
   sbSetIntent();
 
   const sideLabel = UX_LABELS.D.split(' (')[0].toLowerCase();
-  const wallLabel = UX_LABELS.H.toLowerCase();
 
   const sideRaw  = document.getElementById('sb-offset').value.trim();
-  const wallRaw  = document.getElementById('sb-m1').value.trim();
 
-  if (!sideRaw || !wallRaw) {
-    const checklist = [
-      `${sideRaw ? '✓' : '✗'} ${sideLabel}`,
-      `${wallRaw ? '✓' : '✗'} ${wallLabel}`,
-    ];
+  if (!sideRaw) {
+    const checklist = [`✗ ${sideLabel} — hur långt ska röret flyttas?`];
     showSuggestion('sb-warning',
       'Nästa steg:', checklist);
     hideSuccess('sb-success');
@@ -3618,9 +3616,8 @@ function sbCalculate() {
     showSuggestion('sb-warning',
       `För lite längd för ${A}° böj.`,
       [
-        `Öka ${wallLabel} till minst 30 mm`,
-        `Öka ${sideLabel} från ${D.toFixed(0)} mm till minst ${minSideForAngle} mm`,
-        anglePick ? `Testa ${anglePick}° istället` : 'Använd en flackare vinkel',
+        anglePick ? `Minska vinkeln till ${anglePick}°` : 'Minska vinkeln för att få mer plats mellan böjarna',
+        `Eller öka ${sideLabel} till minst ${minSideForAngle} mm`,
         'Behöver du även byta höjd? Då passar Svanbock-fliken bättre.',
       ]);
     hideSuccess('sb-success');
