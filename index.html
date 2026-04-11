@@ -758,6 +758,23 @@
   #swan-results  { display: none; }
 
   .sb-angle-toggle, .sw-angle-toggle { width: 100%; margin-bottom: 0; }
+  .sb-mode-toggle { display:flex; gap:6px; margin-bottom:10px; }
+  .sbm-btn {
+    padding:5px 14px; border-radius:4px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text-dim);
+    font-size:0.8rem; cursor:pointer; font-family:'Share Tech Mono', monospace;
+  }
+  .sbm-btn.active { background:var(--accent); color:#000; font-weight:bold; border-color:var(--accent); }
+  .sb-hidden { display:none !important; }
+  .sb-simple-card {
+    display:none; background:#161b18; border:1px solid var(--border);
+    border-radius:8px; padding:14px 18px; margin-bottom:12px;
+  }
+  .sb-simple-card.visible { display:block; }
+  .sbsc-row { display:flex; align-items:baseline; gap:8px; margin-bottom:6px; }
+  .sbsc-label { color:var(--text-dim); font-size:0.82rem; flex:1; }
+  .sbsc-val { font-size:1.45rem; font-weight:bold; color:var(--accent); font-family:'Share Tech Mono', monospace; }
+  .sbsc-unit { color:var(--text-dim); font-size:0.78rem; }
 
   .sb-result-hero {
     display: flex; gap: 0; margin-bottom: 16px;
@@ -1580,6 +1597,10 @@
         <div class="intro-extra">⚙ Så gör du: 1) Fyll i sidmått. 2) Fyll i längd längs väggen. 3) Klicka Beräkna och markera M1/M2 på röret.</div>
       </div>
       <div id="sb-intent" class="sb-intent"></div>
+      <div class="sb-mode-toggle" id="sb-mode-toggle">
+        <button type="button" class="sbm-btn active" data-sbmode="simple" onclick="sbSetMode('simple')">Enkelt</button>
+        <button type="button" class="sbm-btn" data-sbmode="advanced" onclick="sbSetMode('advanced')">Avancerat</button>
+      </div>
       <div class="panel-title">Indata — S-böj (parallellförskjutning)</div>
 
       <div class="mb-top-grid">
@@ -1604,7 +1625,7 @@
           </div>
           <input type="hidden" id="sb-angle" value="45">
         </div>
-        <div class="field">
+        <div class="field sb-advanced-only">
           <label for="sb-clr">CLR <span>(böjradie)</span></label>
           <div class="bt-group">
             <button type="button" class="bt-btn active" data-tool="fromax" onclick="sbSetBendTool('fromax')">Fromax</button>
@@ -1640,7 +1661,7 @@
         </div>
       </div>
 
-      <div class="sb-quick-actions">
+      <div class="sb-quick-actions sb-advanced-only">
         <button type="button" class="sb-example-btn" onclick="sbLoadExample()">Testa med exempelmått</button>
       </div>
 
@@ -1648,6 +1669,12 @@
     </div>
 
     <div id="sbend-results">
+      <div id="sb-simple-card" class="sb-simple-card sb-simple-only">
+        <div class="sbsc-row"><span class="sbsc-label">Kapa röret till</span><span class="sbsc-val" id="sbsc-cut">—</span><span class="sbsc-unit">mm</span></div>
+        <div class="sbsc-row"><span class="sbsc-label">Märk M1 från referensänden</span><span class="sbsc-val" id="sbsc-m1">—</span><span class="sbsc-unit">mm</span></div>
+        <div class="sbsc-row"><span class="sbsc-label">Märk M2 från referensänden</span><span class="sbsc-val" id="sbsc-m2">—</span><span class="sbsc-unit">mm</span></div>
+        <div id="sbsc-note" class="hint"></div>
+      </div>
       <div class="action-required-header" id="sb-action-header"></div>
       <div class="sb-success" id="sb-success"></div>
       <div class="sb-warning" id="sb-warning"></div>
@@ -1675,11 +1702,11 @@
         <div class="sb-marks-grid" id="sb-marks-grid"></div>
         <div id="sb-clamp-tail-result" class="hint-danger"></div>
         <div id="sb-m1-suspicious" class="hint-warn"></div>
-        <div class="sb-worklist" id="sb-worklist"></div>
-        <div class="sb-diagram-wrap">
+        <div class="sb-worklist sb-advanced-only" id="sb-worklist"></div>
+        <div class="sb-diagram-wrap sb-advanced-only">
           <svg id="sbend-svg" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
-        <div class="note sb-note-gap">
+        <div class="note sb-note-gap sb-advanced-only">
           Böj vid M1 (vänster) och M2 (höger). Håll böjarna symmetriska för exakt sidförskjutning.
         </div>
       </div>
@@ -4020,6 +4047,43 @@ function drawVertical(D, H_diag, L, alpha_deg, M1, dia, hojdA, hojdB, instA, ins
 
 // ══ S-BÖJ (PARALLELLFÖRSKJUTNING) ════════════════════════════════════════
 let sbBendTool = 'fromax';
+let sbMode = 'simple';
+let sbLastSummary = null;
+
+function sbUpdateSimpleCard(summary) {
+  const card = document.getElementById('sb-simple-card');
+  if (!card) return;
+  if (sbMode !== 'simple' || !summary) {
+    card.classList.remove('visible');
+    return;
+  }
+
+  document.getElementById('sbsc-cut').textContent = Math.round(summary.cut);
+  document.getElementById('sbsc-m1').textContent = Math.round(summary.M1);
+  document.getElementById('sbsc-m2').textContent = Math.round(summary.M2);
+  const note = document.getElementById('sbsc-note');
+  if (note) {
+    if (!sessionStorage.getItem('sb_simple_tip')) {
+      note.textContent = 'Tips: märk båda böjarna från samma referensände innan du börjar bocka';
+      sessionStorage.setItem('sb_simple_tip', '1');
+    } else {
+      note.textContent = `${Math.round(summary.A)}° · sidmått ${Math.round(summary.D)} mm`;
+    }
+  }
+  card.classList.add('visible');
+}
+
+function sbSetMode(mode) {
+  sbMode = mode;
+  sessionStorage.setItem('sb_ui_mode', mode);
+  document.querySelectorAll('#sbend-section .sb-advanced-only').forEach(el =>
+    el.classList.toggle('sb-hidden', mode === 'simple'));
+  document.querySelectorAll('#sbend-section .sb-simple-only').forEach(el =>
+    el.classList.toggle('sb-hidden', mode === 'advanced'));
+  document.querySelectorAll('.sbm-btn').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.sbmode === mode));
+  sbUpdateSimpleCard(sbLastSummary);
+}
 
 function sbSetPipeSize(size) {
   document.getElementById('sb-diam').value = size;
@@ -4204,6 +4268,8 @@ function sbCalculate() {
   const sideLabel = UX_LABELS.D.split(' (')[0].toLowerCase();
 
   if (!sideRaw) {
+    sbLastSummary = null;
+    sbUpdateSimpleCard(null);
     showSuggestion('sb-warning', 'Nästa steg:', [`✗ ${sideLabel} — hur långt ska röret flyttas?`]);
     hideSuccess('sb-success');
     sbToggleAutoFix(false);
@@ -4221,6 +4287,8 @@ function sbCalculate() {
   // Stage 3: geometry (existing engine — no new math)
   const geo = geParallelOffset(D, A);
   if (geo.L === Infinity) {
+    sbLastSummary = null;
+    sbUpdateSimpleCard(null);
     showSuggestion('sb-warning', 'Vinkeln är ogiltig.', ['Välj en vinkel mellan 1° och 179°']);
     hideSuccess('sb-success');
     sbToggleAutoFix(false);
@@ -4232,6 +4300,8 @@ function sbCalculate() {
 
   const _bd = geBendDeduction({ angle_deg: A, tool: sbBendTool, size, clr });
   if (_bd.model === 'invalid') {
+    sbLastSummary = null;
+    sbUpdateSimpleCard(null);
     showSuggestion('sb-warning', 'Kontrollera böjinställningen.', ['Böjvinkel, rörstorlek och CLR måste vara ifyllda.']);
     hideSuccess('sb-success');
     sbToggleAutoFix(false);
@@ -4314,6 +4384,8 @@ function sbCalculate() {
   document.getElementById('sb-cut').textContent   = Math.round(cut);
   document.getElementById('sb-d-out').textContent = Math.round(D);
   document.getElementById('sb-L-out').textContent = Math.round(L);
+  sbLastSummary = { cut, M1, M2, A, D };
+  sbUpdateSimpleCard(sbLastSummary);
 
   // Reference strip — RULE: reference must exist in result zone
   const refStrip = document.getElementById('sb-ref-strip');
@@ -5952,6 +6024,8 @@ window.onload = () => {
   mbRenderSegments();
   const savedMbMode = sessionStorage.getItem('mb_ui_mode') || 'simple';
   mbSetMode(savedMbMode);
+  const savedSbMode = sessionStorage.getItem('sb_ui_mode') || 'simple';
+  sbSetMode(savedSbMode);
   toCheckFieldWarnings();
   trCheckFieldWarnings();
 
