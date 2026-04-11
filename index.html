@@ -807,6 +807,45 @@
   }
   .sb-example-btn:hover { background: #0a140c; }
 
+  /* ── v0.5.5 Human Error Prevention Layer ───────────────────────────────── */
+  .hint-warn {
+    display: none; font-size: 0.78rem; color: var(--accent2); margin-top: 3px;
+  }
+  .hint-warn.visible { display: block; }
+  .hint-danger {
+    display: none; font-size: 0.78rem; font-weight: bold; color: var(--danger); margin-top: 3px;
+  }
+  .hint-danger.visible { display: block; }
+
+  .result-badge {
+    display: none; font-size: 0.68rem; font-weight: bold;
+    padding: 1px 6px; border-radius: 3px; margin-left: 6px; vertical-align: middle;
+  }
+  .result-badge.visible { display: inline-block; }
+  .result-badge-warn {
+    background: #1a1200; color: var(--accent2); border: 1px solid var(--accent2);
+  }
+  .result-badge-danger {
+    background: #1a0808; color: var(--danger); border: 1px solid var(--danger);
+  }
+  .result-badge-warn[data-use-count="3"],
+  .result-badge-warn[data-use-count="4"],
+  .result-badge-warn[data-use-count="5"] { border-width: 2px; background: #241800; }
+
+  .ref-strip {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    font-size: 0.72rem; color: var(--text-dim);
+    border-bottom: 1px solid var(--border); padding: 5px 0 8px 0; margin-bottom: 8px;
+  }
+  .ref-strip strong { color: var(--accent); }
+
+  .action-required-header {
+    display: none; background: #1a0808; border: 1px solid var(--danger);
+    color: var(--danger); font-weight: bold; font-size: 0.82rem;
+    padding: 8px 14px; border-radius: 6px; margin-bottom: 10px;
+  }
+  .action-required-header.visible { display: block; }
+
   .sb-worklist {
     background: #0c1310; border: 1px solid var(--border);
     border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;
@@ -947,7 +986,7 @@
       </svg>
     </div>
     <div>
-      <h1>RÖRBOCK <span>// PIPE BENDING CALCULATOR v0.5.4</span></h1>
+      <h1>RÖRBOCK <span>// PIPE BENDING CALCULATOR v0.5.5</span></h1>
     </div>
     <a href="https://buymeacoffee.com/pstenbumling" target="_blank" rel="noopener" class="bmc-btn">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.598-.388-1.163-1.001-1.379-.197-.069-.42-.098-.57-.241-.152-.143-.196-.366-.231-.572-.065-.378-.125-.756-.192-1.133-.057-.325-.102-.69-.25-.987-.195-.4-.597-.634-.996-.788a5.723 5.723 0 00-.626-.194c-1-.263-2.05-.36-3.077-.416a25.834 25.834 0 00-3.7.062c-.915.083-1.88.184-2.75.5-.318.116-.646.256-.919.479-.259.211-.514.643-.438 1.033.074.39.446.561.719.755.336.232.437.63.437 1.021V6.069c0 .557-.157 1.108-.183 1.666-.02.437.073.874.157 1.303l.208 1.068c.18.92.398 1.843.694 2.73l.052.157c.172.509.357.985.52 1.502.15.477.26.997.145 1.492-.124.519-.467.905-.956 1.076-.262.093-.538.148-.814.218l-.946.245-.95.247-.945.245c-.466.121-.932.243-1.396.372-.457.127-.916.26-1.37.4-.395.122-.8.253-1.148.466-.303.183-.534.445-.618.79-.083.34.01.703.154 1.02.217.482.588.895 1.048 1.138.467.246.987.343 1.508.408.6.074 1.202.117 1.805.132 1.14.026 2.283-.024 3.42-.101.88-.06 1.762-.137 2.64-.234.733-.082 1.466-.174 2.196-.28.676-.099 1.35-.211 2.02-.333.538-.097 1.078-.197 1.61-.31.457-.097.917-.198 1.37-.31.427-.107.816-.268 1.162-.506.317-.217.6-.496.74-.856l.094-.25.056-.15c.151-.403.192-.832.15-1.255-.036-.38-.124-.755-.25-1.116l-.066-.192c-.142-.41-.295-.818-.47-1.217-.193-.44-.41-.872-.64-1.296-.233-.43-.483-.849-.737-1.264-.25-.409-.508-.815-.762-1.224-.113-.183-.226-.365-.334-.55-.057-.096-.112-.194-.153-.296a.855.855 0 01-.05-.27c0-.163.063-.32.17-.44.11-.12.258-.186.41-.19h.003c.277-.008.555.075.797.217.263.153.49.367.686.6.193.228.36.477.509.735.153.264.285.539.406.817.245.557.45 1.13.645 1.706.194.578.377 1.16.557 1.743l.006.02c.168.54.33 1.082.488 1.625l.07.24.07-.24c.148-.523.297-1.046.452-1.566.153-.516.312-1.03.479-1.54.169-.516.348-1.027.535-1.533.19-.514.393-1.022.614-1.52.11-.25.226-.496.353-.736.127-.24.264-.473.416-.695.148-.216.31-.422.49-.612.174-.184.364-.354.578-.489.21-.133.44-.225.682-.246a.746.746 0 01.54.163c.147.127.218.316.224.507 0 .092-.014.184-.04.272-.041.139-.103.27-.175.394-.108.19-.225.375-.342.559-.255.41-.513.817-.764 1.228-.254.414-.5.834-.733 1.258-.23.42-.447.847-.638 1.283-.174.405-.328.819-.468 1.236l-.063.19c-.126.37-.212.75-.247 1.135-.041.432.002.87.158 1.278l.057.153.095.247c.14.357.423.636.74.852.348.238.738.399 1.166.506.453.112.913.213 1.37.31.532.113 1.072.213 1.61.31.67.122 1.344.234 2.02.333.73.106 1.463.198 2.196.28.878.097 1.76.174 2.64.234 1.137.077 2.28.127 3.42.101.603-.015 1.205-.058 1.805-.132.521-.065 1.041-.162 1.508-.408.46-.243.831-.656 1.048-1.138.144-.317.237-.68.154-1.02-.084-.345-.315-.607-.618-.79-.348-.213-.753-.344-1.148-.466a54.613 54.613 0 00-1.37-.4c-.464-.129-.93-.251-1.396-.372l-.945-.245-.95-.247-.946-.245c-.276-.07-.552-.125-.814-.218-.489-.171-.832-.557-.956-1.076-.115-.495-.005-1.015.145-1.492.163-.517.348-.993.52-1.502l.052-.157c.296-.887.514-1.81.694-2.73l.208-1.068c.084-.429.177-.866.157-1.303-.026-.558-.183-1.109-.183-1.666V7.6c0-.391.101-.789.437-1.021.273-.194.645-.365.719-.755.076-.39-.179-.822-.438-1.033-.273-.223-.601-.363-.919-.479-.87-.316-1.835-.417-2.75-.5a25.835 25.835 0 00-3.7-.062c-1.027.056-2.077.153-3.077.416-.211.056-.42.12-.626.194-.399.154-.801.388-.996.788-.148.297-.193.662-.25.987-.067.377-.127.755-.192 1.133-.035.206-.079.429-.231.572-.15.143-.373.172-.57.241-.613.216-.882.781-1.001 1.379l-.132.666z"/></svg>
@@ -983,6 +1022,8 @@
       <div class="intro-tip">💡 Mät M1 från <strong>H-stycket</strong> (övre kopplingen).<br>👉 Börja alltså mäta från den sida där röret ska sluta. Mäter du från T-sidan hamnar böjen fel och röret passar inte.</div>
       <div class="intro-extra">⚙ Så gör du: 1) Fyll i sidmått och höjder. 2) Ange M1 och instick. 3) Klicka Beräkna — appen visar kaplängd och böjmärke.</div>
     </div>
+    <div class="ref-strip" id="banana-ref-strip-input"><strong>← 0 mm — H-styckets ände (överkant)</strong></div>
+    <div id="banana-ref-note" class="hint-warn"></div>
     <div class="panel-title">Indata — Bananböj (enkel böj)</div>
 
     <!-- Mode toggle -->
@@ -1088,8 +1129,9 @@
     <div class="input-grid-3">
       <div class="field">
         <label for="m1val">M1 — Bockningsmärke A</label>
-        <input type="number" id="m1val" value="50" min="1" step="1" title="M1 från H-stycke-änden i millimeter">
+        <input type="number" id="m1val" value="50" min="1" step="1" oninput="bananaClampCheck()" title="M1 från H-stycke-änden i millimeter">
         <div class="hint">Från <strong>H-stycke-änden</strong> (överkant) [mm]</div>
+        <div id="banana-m1-hint" class="hint-danger"></div>
       </div>
       <div class="field">
         <label for="instickA">Instick A <span>(T-koppling)</span></label>
@@ -1098,7 +1140,7 @@
       </div>
       <div class="field">
         <label for="instickB">Instick B <span>(H-stycke)</span></label>
-        <input type="number" id="instickB" value="10" min="0" step="1" title="Instick B i millimeter">
+        <input type="number" id="instickB" value="10" min="0" step="1" oninput="bananaClampCheck()" title="Instick B i millimeter">
         <div class="hint">Rörets instick i fitting [mm]</div>
       </div>
     </div>
@@ -1126,11 +1168,16 @@
     <!-- Error -->
     <div class="error-msg" id="error-msg"></div>
 
+    <div class="action-required-header" id="banana-action-header"></div>
+    <div class="ref-strip" id="banana-ref-strip-result"></div>
+    <div id="banana-clamp-lead-result" class="hint-danger"></div>
+
     <!-- KAPA hero card -->
     <div class="kapa-card" id="kapa-card">
       <div class="kapa-label">// Kapa röret till</div>
       <div class="kapa-value" id="kapa-value">—</div>
       <div class="kapa-unit">mm</div>
+      <div id="banana-kapa-sublabel" class="hint">Kapa här (0 mm – H-stycke)</div>
       <div class="kapa-breakdown">
         <div class="kapa-row">
           <span class="kd-label">Rå längd (M1 + L + instA)</span>
@@ -1191,6 +1238,8 @@
         </thead>
         <tbody id="marks-tbody"></tbody>
       </table>
+
+      <div id="banana-m1-suspicious" class="hint-warn"></div>
 
       <!-- Orientation comparison -->
       <div class="panel-title panel-title-mt">Mätläge — jämförelse</div>
@@ -1406,7 +1455,10 @@
 
       <!-- Marks table -->
       <div class="panel">
+        <div class="action-required-header" id="mb-action-header"></div>
         <div class="panel-title">Märkningar på röret</div>
+        <div id="mb-first-seg-hint" class="hint-danger"></div>
+        <div class="ref-strip" id="mb-ref-strip"></div>
         <table class="mb-marks-table">
           <thead id="mb-marks-table-head">
             <tr>
@@ -1419,6 +1471,10 @@
           </thead>
           <tbody id="mb-marks-tbody"></tbody>
         </table>
+        <div id="mb-last-seg-hint" class="hint-danger"></div>
+        <div id="mb-m1-suspicious" class="hint-warn"></div>
+        <div id="mb-mismatch-hint" class="hint-warn"></div>
+        <div id="mb-override-hint" class="hint-warn"></div>
 
         <!-- Chain diagram -->
         <div class="section-label mb-diagram-label">Schematisk vy — märkpositioner</div>
@@ -1496,6 +1552,7 @@
           </div>
           <input type="number" id="sb-clr" value="43" min="1" step="1" class="computed" readonly>
           <div class="hint">Centerline Radius [mm]</div>
+          <div id="sb-clr-hint" class="hint-warn"></div>
         </div>
       </div>
 
@@ -1505,16 +1562,21 @@
           <label for="sb-offset">Sidmått</label>
           <input type="number" id="sb-offset" value="50" min="1" step="1" oninput="sbLiveUpdate()">
           <div class="hint">Parallell förskjutning [mm]</div>
+          <div id="sb-offset-cc-hint" class="hint">Mät rakt tvärs — inte längs röret. Centerline till centerline (cc).</div>
+          <div id="sb-offset-plausibility-hint" class="hint-danger"></div>
+          <div id="sb-offset-angle-hint" class="hint-warn"></div>
         </div>
         <div class="field">
           <label for="sb-m1">Rör före M1</label>
           <input type="number" id="sb-m1" value="100" min="0" step="1" oninput="sbLiveUpdate()">
           <div class="hint">Rörände → första böjmärket [mm] (kan lämnas tomt = 0)</div>
+          <div id="sb-m1-hint" class="hint-danger"></div>
         </div>
         <div class="field">
           <label for="sb-end">Rör efter M2</label>
           <input type="number" id="sb-end" value="100" min="0" step="1" oninput="sbLiveUpdate()">
           <div class="hint">Böjmärke M2 → rörände [mm]</div>
+          <div id="sb-end-hint" class="hint-danger"></div>
         </div>
       </div>
 
@@ -1526,6 +1588,7 @@
     </div>
 
     <div id="sbend-results">
+      <div class="action-required-header" id="sb-action-header"></div>
       <div class="sb-success" id="sb-success"></div>
       <div class="sb-warning" id="sb-warning"></div>
       <button type="button" id="sb-autofix" class="sb-autofix-btn" onclick="sbAutoFix()">Justera automatiskt</button>
@@ -1547,7 +1610,11 @@
 
       <div class="panel">
         <div class="panel-title">Böjmärken</div>
+        <div id="sb-clamp-lead-result" class="hint-danger"></div>
+        <div class="ref-strip" id="sb-ref-strip"></div>
         <div class="sb-marks-grid" id="sb-marks-grid"></div>
+        <div id="sb-clamp-tail-result" class="hint-danger"></div>
+        <div id="sb-m1-suspicious" class="hint-warn"></div>
         <div class="sb-worklist" id="sb-worklist"></div>
         <div class="sb-diagram-wrap">
           <svg id="sbend-svg" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -1608,6 +1675,7 @@
           </div>
           <input type="number" id="sw-clr" value="43" min="1" step="1" class="computed" readonly>
           <div class="hint">Centerline Radius [mm]</div>
+          <div id="sw-clr-hint" class="hint-warn"></div>
         </div>
       </div>
 
@@ -1622,6 +1690,9 @@
           <label for="sw-offset">Sidmått</label>
           <input type="number" id="sw-offset" value="60" min="1" step="1" oninput="swLiveUpdate()">
           <div class="hint">Centrum till centrum, rakt tvärs [mm]</div>
+          <div id="sw-offset-cc-hint" class="hint">Mät rakt tvärs — inte längs röret. Centerline till centerline (cc).</div>
+          <div id="sw-offset-plausibility-hint" class="hint-danger"></div>
+          <div id="sw-offset-angle-hint" class="hint-warn"></div>
         </div>
       </div>
       <div class="input-grid-2">
@@ -1629,11 +1700,13 @@
           <label for="sw-m1">Längd längs väggen</label>
           <input type="number" id="sw-m1" value="50" min="0" step="1" oninput="swLiveUpdate()">
           <div class="hint">Från röränden till första böjmärket [mm]</div>
+          <div id="sw-m1-hint" class="hint-danger"></div>
         </div>
         <div class="field">
           <label for="sw-end">Rör efter M4</label>
           <input type="number" id="sw-end" value="50" min="0" step="1" oninput="swLiveUpdate()">
           <div class="hint">Böjmärke M4 → rörände [mm]</div>
+          <div id="sw-end-hint" class="hint-danger"></div>
         </div>
       </div>
 
@@ -1645,6 +1718,7 @@
     </div>
 
     <div id="swan-results">
+      <div class="action-required-header" id="sw-action-header"></div>
       <div class="sb-success" id="sw-success"></div>
       <div class="sb-warning" id="sw-warning"></div>
       <button type="button" id="sw-autofix" class="sb-autofix-btn" onclick="swAutoFix()">Justera automatiskt</button>
@@ -1666,7 +1740,11 @@
 
       <div class="panel">
         <div class="panel-title">Böjmärken</div>
+        <div id="sw-clamp-lead-result" class="hint-danger"></div>
+        <div class="ref-strip" id="sw-ref-strip"></div>
         <div class="sb-marks-grid" id="sw-marks-grid"></div>
+        <div id="sw-clamp-tail-result" class="hint-danger"></div>
+        <div id="sw-m1-suspicious" class="hint-warn"></div>
         <div class="sb-worklist" id="sw-worklist"></div>
         <div class="sb-diagram-wrap">
           <svg id="swan-svg" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -1726,8 +1804,9 @@
             <button type="button" class="bt-btn active" data-tool="fromax" onclick="toSetBendTool('fromax')">Fromax</button>
             <button type="button" class="bt-btn" data-tool="manual" onclick="toSetBendTool('manual')">Manuell</button>
           </div>
-          <input type="number" id="to-clr" value="43" min="1" step="1" class="computed" readonly>
+          <input type="number" id="to-clr" value="43" min="1" step="1" class="computed" readonly oninput="toCheckFieldWarnings()">
           <div class="hint">Centerline Radius [mm]</div>
+          <div id="to-clr-hint" class="hint-warn"></div>
         </div>
       </div>
 
@@ -1756,13 +1835,15 @@
       <div class="input-grid-2">
         <div class="field">
           <label for="to-m1">Längd längs väggen</label>
-          <input type="number" id="to-m1" value="100" min="0" step="1">
+          <input type="number" id="to-m1" value="100" min="0" step="1" oninput="toCheckFieldWarnings()">
           <div class="hint">Från röränden till första böjmärket [mm]</div>
+          <div id="to-m1-hint" class="hint-danger"></div>
         </div>
         <div class="field">
           <label for="to-end">Rör efter M2</label>
-          <input type="number" id="to-end" value="100" min="0" step="1">
+          <input type="number" id="to-end" value="100" min="0" step="1" oninput="toCheckFieldWarnings()">
           <div class="hint">Böjmärke M2 → rörände [mm]</div>
+          <div id="to-end-hint" class="hint-danger"></div>
         </div>
       </div>
 
@@ -1808,6 +1889,9 @@
 
       <div class="panel">
         <div class="panel-title">Böjmärken</div>
+        <div class="ref-strip" id="to-ref-strip"></div>
+        <div id="to-lead-result" class="hint-danger"></div>
+        <div id="to-tail-result" class="hint-danger"></div>
         <div class="sb-marks-grid" id="to-marks-grid"></div>
         <div class="sb-diagram-wrap">
           <svg id="takoffset-svg" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -1851,8 +1935,9 @@
       <div class="input-grid-3">
         <div class="field">
           <label for="tr-seg1">S1 — Horisontellt längs vägg</label>
-          <input type="number" id="tr-seg1" value="200" min="1" step="10">
+          <input type="number" id="tr-seg1" value="200" min="1" step="10" oninput="trCheckFieldWarnings()">
           <div class="hint">Från radiator/start → M1 [mm]</div>
+          <div id="tr-s1-hint" class="hint-danger"></div>
         </div>
         <div class="field">
           <label for="tr-seg2">S2 — Vertikalt längs vägg</label>
@@ -1868,8 +1953,9 @@
       <div class="input-grid-2">
         <div class="field">
           <label for="tr-seg4">S4 — Uppgång genom tak</label>
-          <input type="number" id="tr-seg4" value="100" min="0" step="10">
+          <input type="number" id="tr-seg4" value="100" min="0" step="10" oninput="trCheckFieldWarnings()">
           <div class="hint">Höjd ovan tak efter M3 [mm]</div>
+          <div id="tr-s4-hint" class="hint-danger"></div>
         </div>
         <div class="field">
           <label for="tr-gap">Avstånd rör–tak <span>(h)</span></label>
@@ -1928,6 +2014,9 @@
 
       <div class="panel">
         <div class="panel-title">Böjmärken</div>
+        <div class="ref-strip" id="tr-ref-strip"></div>
+        <div id="tr-s1-result" class="hint-danger"></div>
+        <div id="tr-s4-result" class="hint-danger"></div>
         <div class="sb-marks-grid" id="tr-marks-grid"></div>
 
         <!-- Front elevation: looking at wall face-on -->
@@ -2083,6 +2172,29 @@ function geComputeMarks(segLengths, deductionValues) {
 function geCheckClampLength(segLength, pipeSize) {
   const minRequired = 2 * pipeSize;
   return { ok: segLength >= minRequired, minRequired };
+}
+
+// ── v0.5.5 Human Error Prevention Layer ──────────────────────────────────
+
+// intentionally GLOBAL across all tabs — do NOT scope per-tab
+// Measures total session exposure to the 15mm empirical estimate (shared escalation signal)
+let estimatedUseCount = 0;
+
+function applyWarningHierarchy(tabResultZoneEl) {
+  if (!tabResultZoneEl) return;
+  const redWarnings = tabResultZoneEl.querySelectorAll('.hint-danger.visible');
+  const amberBadges = tabResultZoneEl.querySelectorAll('.result-badge-warn');
+  const headerEl    = tabResultZoneEl.querySelector('.action-required-header');
+
+  if (redWarnings.length > 0) {
+    amberBadges.forEach(b => b.classList.remove('visible'));
+    if (headerEl) {
+      headerEl.textContent = '⚠ ÅTGÄRDA FEL INNAN MONTERING';
+      headerEl.classList.add('visible');
+    }
+  } else {
+    if (headerEl) headerEl.classList.remove('visible');
+  }
 }
 
 // ── UI controls ───────────────────────────────────────────────────────────
@@ -2531,14 +2643,99 @@ function mbCalculate() {
   const total   = marks[marks.length - 1];
   const rawTotal    = mbSegments.reduce((s, v) => s + v, 0);
   const totalDeduct = nBends * bd;
+  const size    = parseFloat(document.getElementById('mb-diam').value) || 12;
 
-  // Hero
+  // Hero — kaplängd = last mark rounded (RULE: no independent kaplängd calculation)
   const heroVal = document.getElementById('mb-total-val');
-  heroVal.textContent = total.toFixed(1);
+  heroVal.textContent = Math.round(total);
   heroVal.className   = 'mb-hero-val';
-  document.getElementById('mb-total-val').textContent    = total.toFixed(1);
+  document.getElementById('mb-total-val').textContent    = Math.round(total);
   document.getElementById('mb-bend-count').textContent   = nBends;
-  document.getElementById('mb-total-deduct').textContent = totalDeduct.toFixed(1);
+  document.getElementById('mb-total-deduct').textContent = Math.round(totalDeduct);
+
+  // v0.5.5 — clamp checks (lead-in priority, identical to S-böj reference)
+  const firstSegHintEl = document.getElementById('mb-first-seg-hint');
+  const lastSegHintEl  = document.getElementById('mb-last-seg-hint');
+  const clampIn  = geCheckClampLength(mbSegments[0], size);
+  const clampOut = geCheckClampLength(mbSegments[mbSegments.length - 1], size);
+  if (firstSegHintEl && lastSegHintEl) {
+    if (!clampIn.ok) {
+      firstSegHintEl.textContent = `⚠ Bocken slinter — röret är bara ${mbSegments[0]}mm framför M1 (minst ${clampIn.minRequired}mm krävs)`;
+      firstSegHintEl.classList.add('visible');
+      lastSegHintEl.classList.remove('visible');
+    } else {
+      firstSegHintEl.classList.remove('visible');
+      if (!clampOut.ok) {
+        lastSegHintEl.textContent = `⚠ Kort svans — ${mbSegments[mbSegments.length - 1]}mm efter sista böjen är för kort (minst ${clampOut.minRequired}mm rekommenderas)`;
+        lastSegHintEl.classList.add('visible');
+      } else {
+        lastSegHintEl.classList.remove('visible');
+      }
+    }
+  }
+
+  // v0.5.5 — tool mismatch
+  const mismatchEl = document.getElementById('mb-mismatch-hint');
+  if (mismatchEl) {
+    if (mbBendTool === 'manual' && mbGetCLR() === FROMAX_CLR[size]) {
+      mismatchEl.textContent = 'CLR ser ut som Fromax — om ditt verktyg har annan radie hamnar röret fel';
+      mismatchEl.classList.add('visible');
+    } else {
+      mismatchEl.classList.remove('visible');
+    }
+  }
+
+  // v0.5.5 — manual override reasonableness guard
+  const overrideEl = document.getElementById('mb-override-hint');
+  const ovVal = parseFloat(document.getElementById('mb-bd-override').value);
+  if (overrideEl && !isNaN(ovVal) && ovVal > 0) {
+    if (ovVal > size * 3) {
+      overrideEl.textContent = 'Ovanligt stort böjavdrag — röret blir för kort och passar inte i kopplingen';
+      overrideEl.classList.add('visible');
+    } else if (ovVal > (FROMAX_CLR[size] || 43) * 0.8) {
+      overrideEl.textContent = 'Värdet liknar böjradien (CLR) — om detta används hamnar röret fel';
+      overrideEl.classList.add('visible');
+    } else {
+      overrideEl.classList.remove('visible');
+    }
+  } else if (overrideEl) {
+    overrideEl.classList.remove('visible');
+  }
+
+  // v0.5.5 — estimated badge (15mm + Fromax + 90°)
+  const isEstimated = mbIsEmpirical() && size === 15;
+  if (isEstimated) {
+    estimatedUseCount++;
+    const cap = Math.min(estimatedUseCount, 5);
+    const srcEl = document.getElementById('mb-bd-src');
+    if (srcEl) {
+      const txt = estimatedUseCount < 3
+        ? '⚠ UPPSKATTNING'
+        : `⚠ UPPSKATTNING (använt ${estimatedUseCount} ggr — kontrollerat med provrör?)`;
+      srcEl.textContent  = `(empiriskt — Fromax 90° — ${txt})`;
+      srcEl.className    = 'bd-label bd-estimated';
+      srcEl.dataset.estimated  = 'true';
+      srcEl.dataset.useCount   = String(cap);
+    }
+    if (!sessionStorage.getItem('v555_est_mb')) sessionStorage.setItem('v555_est_mb', '1');
+  }
+
+  // v0.5.5 — reference strip
+  const refStrip = document.getElementById('mb-ref-strip');
+  if (refStrip) {
+    refStrip.innerHTML = `<strong>← 0 mm — START-änden</strong>`;
+  }
+
+  // v0.5.5 — suspicious first segment (more than half total)
+  const suspEl = document.getElementById('mb-m1-suspicious');
+  if (suspEl) {
+    if (mbSegments[0] > total / 2) {
+      suspEl.textContent = 'M1 är mer än halva rörlängden — är referensänden rätt?';
+      suspEl.classList.add('visible');
+    } else {
+      suspEl.classList.remove('visible');
+    }
+  }
 
   // Coupling info for table (may not be visible yet, use defaults)
   const stock_t   = parseFloat(document.getElementById('mb-stock').value)    || 3000;
@@ -2554,16 +2751,16 @@ function mbCalculate() {
     const dirLabel = dir === 'L'
       ? '<span class="mb-dir-L">◄ Vänster (i färdriktning)</span>'
       : '<span class="mb-dir-R">Höger ► (i färdriktning)</span>';
-    const deductStr = i === 0 ? '—' : `−${bd.toFixed(1)} mm`;
+    const deductStr = i === 0 ? '—' : `−${Math.round(bd)} mm`;
     const onP2     = hasOv && marks[i] > stock_t;
     const localPos = onP2 ? (marks[i] - stock_t - coupNet_t) : marks[i];
     const pjasTag  = !hasOv ? '' : onP2
       ? `<span class="mb-pjas-tag mb-pjas-2">PJÄS 2</span>`
       : `<span class="mb-pjas-tag mb-pjas-1">PJÄS 1</span>`;
     const posCell  = onP2
-      ? `<span class="mb-mark-pos">${localPos.toFixed(1)} mm</span>
-         <span class="mb-mark-global">(global ${marks[i].toFixed(0)} mm)</span>`
-      : `<span class="mb-mark-pos">${marks[i].toFixed(1)} mm</span>`;
+      ? `<span class="mb-mark-pos">${Math.round(localPos)} mm</span>
+         <span class="mb-mark-global">(global ${Math.round(marks[i])} mm)</span>`
+      : `<span class="mb-mark-pos">${Math.round(marks[i])} mm</span>`;
 
     rows += `<tr class="${onP2 ? 'mb-row-p2' : ''}">
       <td>${pjasTag} ${i + 1}</td>
@@ -2575,9 +2772,9 @@ function mbCalculate() {
   }
   rows += `<tr class="mb-total-row">
     <td colspan="1">Tot</td>
-    <td class="mb-mark-pos">${total.toFixed(1)} mm</td>
+    <td class="mb-mark-pos">${Math.round(total)} mm</td>
     <td><span class="mb-raw-len">${rawTotal} mm</span><span class="mb-raw-label">rå längd utan böjavdrag</span></td>
-    <td>−${totalDeduct.toFixed(1)} mm</td>
+    <td>−${Math.round(totalDeduct)} mm</td>
     <td></td>
   </tr>`;
   document.getElementById('mb-marks-tbody').innerHTML = rows;
@@ -2594,6 +2791,9 @@ function mbCalculate() {
   mbDrawDiagram(marks, nBends, total, bd);
   mbDrawIsoDiagram(marks, nBends, total);
   document.getElementById('mb-results').style.display = 'block';
+
+  // v0.5.5 — warning hierarchy (RULE: runs after all individual checks)
+  applyWarningHierarchy(document.getElementById('mb-results'));
 }
 
 function mbCheckOverflow(total, marks) {
@@ -2621,11 +2821,11 @@ function mbCheckOverflow(total, marks) {
   for (let i = 0; i < nBends; i++) {
     const pos = marks[i];
     if (pos <= cutPoint) {
-      marksOnP1.push(`M${i + 1} (${pos.toFixed(0)} mm)`);
+      marksOnP1.push(`M${i + 1} (${Math.round(pos)} mm)`);
     } else {
       // Position on pipe 2 = original mark minus the cut point and coupling span
       const posOnP2 = pos - cutPoint - coupNet;
-      marksOnP2.push(`M${i + 1} (${posOnP2.toFixed(0)} mm från pjäs 2 ände)`);
+      marksOnP2.push(`M${i + 1} (${Math.round(posOnP2)} mm från pjäs 2 ände)`);
     }
   }
 
@@ -3070,6 +3270,25 @@ function showError(msg) {
   el.classList.toggle('visible', !!msg);
 }
 
+// ── Bananböj field warnings ───────────────────────────────────────────────
+function bananaClampCheck() {
+  const M1    = parseFloat(document.getElementById('m1val').value) || 0;
+  const instB = parseFloat(document.getElementById('instickB').value) || 0;
+  const dia   = parseFloat(document.getElementById('diam').value) || 12;
+  const hintEl = document.getElementById('banana-m1-hint');
+  if (!hintEl) return;
+  const freeBefore = M1 - instB;
+  if (freeBefore > 0) {
+    const clamp = geCheckClampLength(freeBefore, dia);
+    if (!clamp.ok) {
+      hintEl.textContent = `Bocken slinter — röret är bara ${freeBefore}mm framför M1 (minst ${clamp.minRequired}mm krävs)`;
+      hintEl.classList.add('visible');
+      return;
+    }
+  }
+  hintEl.classList.remove('visible');
+}
+
 // ── Main calculation ───────────────────────────────────────────────────────
 function calculate(forceShow = false) {
   if (forceShow) hasCalculatedMain = true;
@@ -3079,6 +3298,7 @@ function calculate(forceShow = false) {
   }
 
   showError('');
+  bananaClampCheck();
 
   const D_raw = parseFloat(document.getElementById('djup').value);
   const dia   = parseFloat(document.getElementById('diam').value);
@@ -3146,16 +3366,16 @@ function calculate(forceShow = false) {
   const kapa = M1 + L + instA - bendDeduction;
 
   // ── Update cards ─────────────────────────────────────────────────────
-  document.getElementById('r-angle').textContent = fmt(alpha_deg, 1) + '°';
-  document.getElementById('r-slant').textContent = fmt(L, 1);
-  document.getElementById('r-m1').textContent    = fmt(M1, 0);
-  document.getElementById('r-h').textContent     = fmt(H_diag, 1);
+  document.getElementById('r-angle').textContent = Math.round(alpha_deg) + '°';
+  document.getElementById('r-slant').textContent = Math.round(L);
+  document.getElementById('r-m1').textContent    = Math.round(M1);
+  document.getElementById('r-h').textContent     = Math.round(H_diag);
 
   const rawLen = M1 + L + instA;
-  document.getElementById('kapa-value').textContent = fmt(kapa, 1);
-  document.getElementById('kd-raw').textContent    = fmt(rawLen, 1) + ' mm';
-  document.getElementById('kd-deduct').textContent = '−' + fmt(bendDeduction, 1) + ' mm';
-  document.getElementById('kd-total').textContent  = fmt(kapa, 1) + ' mm';
+  document.getElementById('kapa-value').textContent = Math.round(kapa);
+  document.getElementById('kd-raw').textContent    = Math.round(rawLen) + ' mm';
+  document.getElementById('kd-deduct').textContent = '−' + Math.round(bendDeduction) + ' mm';
+  document.getElementById('kd-total').textContent  = Math.round(kapa) + ' mm';
   document.getElementById('kapa-card').classList.add('visible');
 
   // ── Formula steps ─────────────────────────────────────────────────────
@@ -3174,12 +3394,12 @@ function calculate(forceShow = false) {
       `L = √(${fmt(D,0)}² + ${fmt(H_diag,1)}²) = <em>${fmt(L,1)} mm</em>`;
   }
   document.getElementById('f3').innerHTML =
-    `M1 = <em>${fmt(M1,0)} mm</em> från överkant (instick ${fmt(instB,0)}mm i H + fri ${fmt(freeBefore,1)}mm)`;
+    `M1 = <em>${Math.round(M1)} mm</em> från överkant (instick ${Math.round(instB)}mm i H + fri ${Math.round(freeBefore)}mm)`;
   document.getElementById('f3b').innerHTML = _bd.model === 'empirical'
-    ? `Empiriskt böjavdrag (Fromax 90°) = <em>−${fmt(bendDeduction,1)} mm</em>`
-    : `CLR×(1−cos ${fmt(alpha_deg,1)}°) = ${fmt(clr,0)}×${fmt(1-Math.cos(alpha_rad),3)} = <em>−${fmt(bendDeduction,1)} mm</em>`;
+    ? `Empiriskt böjavdrag (Fromax 90°) = <em>−${Math.round(bendDeduction)} mm</em>`
+    : `CLR×(1−cos ${fmt(alpha_deg,1)}°) = ${Math.round(clr)}×${fmt(1-Math.cos(alpha_rad),3)} = <em>−${Math.round(bendDeduction)} mm</em>`;
   document.getElementById('f4').innerHTML =
-    `${fmt(M1,0)} + ${fmt(L,1)} + ${fmt(instA,0)} − ${fmt(bendDeduction,1)} = <em>${fmt(kapa,1)} mm</em>`;
+    `${Math.round(M1)} + ${Math.round(L)} + ${Math.round(instA)} − ${Math.round(bendDeduction)} = <em>${Math.round(kapa)} mm</em>`;
 
   // ── Arbetsordning ─────────────────────────────────────────────────────
   const springback = parseFloat(document.getElementById('springback').value) || 0;
@@ -3191,11 +3411,11 @@ function calculate(forceShow = false) {
     ? (_wH > _wT ? 'bort från vägg (H-stycke längre ut)' : 'mot vägg (H-stycke närmre)')
     : 'se diagram';
   const steps = [
-    `Kapa röret till <em>${fmt(kapa,0)} mm</em>`,
-    `Märk M1 = <em>${fmt(M1,0)} mm</em> från överkant (H-stycke-sidan)`,
+    `Kapa röret till <em>${Math.round(kapa)} mm</em>`,
+    `Märk M1 = <em>${Math.round(M1)} mm</em> från överkant (H-stycke-sidan)`,
     `Böjriktning: <em>${bendDirText}</em>`,
     `Böj till <em>${springbackAngle}°</em> vid M1 — fjädring ger ~${fmt(alpha_deg,1)}° efter release`,
-    `Stick in <em>${fmt(instA,0)} mm</em> i T-koppling och <em>${fmt(instB,0)} mm</em> i H-stycke`,
+    `Stick in <em>${Math.round(instA)} mm</em> i T-koppling och <em>${Math.round(instB)} mm</em> i H-stycke`,
   ];
 
   document.getElementById('workflow-steps').innerHTML = steps.map((s, i) =>
@@ -3203,22 +3423,77 @@ function calculate(forceShow = false) {
   ).join('');
 
   // ── Marks table ───────────────────────────────────────────────────────
+  const bdLabel = _bd.model === 'empirical' ? 'Böjkorrigering (empiriskt 90°)' : `Böjkorrigering (CLR=${Math.round(clr)})`;
+  const bdBadgeHtml = `<span id="banana-bd-badge" class="result-badge result-badge-warn" data-estimated="false"></span>`;
   let rows = '';
-  rows += `<tr><td>Rör att kapa</td><td>${fmt(kapa,0)} mm</td><td>Rörkniv/kapmaskin</td></tr>`;
-  rows += `<tr><td>${_bd.model === 'empirical' ? 'Böjkorrigering (empiriskt 90°)' : `Böjkorrigering (CLR=${fmt(clr,0)})`}</td><td>−${fmt(bendDeduction,1)} mm</td><td>Ingår i kapa</td></tr>`;
-  rows += `<tr><td>M1 — Bockningsmärke</td><td>${fmt(M1,0)} mm</td><td>Böj till ${springbackAngle}° (fjädring +${springback}°) — mäts från H-stycke-änden (överkant)</td></tr>`;
-  rows += `<tr><td>Instick A (T-koppling)</td><td>${fmt(instA,0)} mm</td><td>Underkant in i T-koppling (diagonalt)</td></tr>`;
-  rows += `<tr><td>Instick B (H-stycke)</td><td>${fmt(instB,0)} mm</td><td>Överkant in i H-stycke (rakt)</td></tr>`;
-  rows += `<tr><td>T-koppling bygger</td><td>${fmt(tBygg,0)} mm</td><td>Stam cc → grenrörets mun (ingår i beräkning)</td></tr>`;
+  rows += `<tr><td>Rör att kapa</td><td>${Math.round(kapa)} mm</td><td>Rörkniv/kapmaskin</td></tr>`;
+  rows += `<tr><td>${bdLabel}</td><td>−${Math.round(bendDeduction)} mm ${bdBadgeHtml}</td><td>Ingår i kapa</td></tr>`;
+  rows += `<tr><td>M1 — Bockningsmärke</td><td>${Math.round(M1)} mm</td><td>Böj till ${springbackAngle}° (fjädring +${springback}°) — mäts från H-stycke-änden (överkant)</td></tr>`;
+  rows += `<tr><td>Instick A (T-koppling)</td><td>${Math.round(instA)} mm</td><td>Underkant in i T-koppling (diagonalt)</td></tr>`;
+  rows += `<tr><td>Instick B (H-stycke)</td><td>${Math.round(instB)} mm</td><td>Överkant in i H-stycke (rakt)</td></tr>`;
+  rows += `<tr><td>T-koppling bygger</td><td>${Math.round(tBygg)} mm</td><td>Stam cc → grenrörets mun (ingår i beräkning)</td></tr>`;
   document.getElementById('marks-tbody').innerHTML = rows;
+
+  // ── Stage 4: result-zone warnings ────────────────────────────────────
+  // Clamp lead-in (result zone)
+  const clampLeadEl = document.getElementById('banana-clamp-lead-result');
+  if (clampLeadEl) {
+    if (freeBefore > 0) {
+      const clampLead = geCheckClampLength(freeBefore, dia);
+      if (!clampLead.ok) {
+        clampLeadEl.textContent = `Bocken slinter — röret är bara ${freeBefore}mm framför M1 (minst ${clampLead.minRequired}mm krävs)`;
+        clampLeadEl.classList.add('visible');
+      } else {
+        clampLeadEl.classList.remove('visible');
+      }
+    } else {
+      clampLeadEl.classList.remove('visible');
+    }
+  }
+
+  // Estimated badge (15mm Fromax empirical)
+  const bdBadgeEl = document.getElementById('banana-bd-badge');
+  if (bdBadgeEl) {
+    if (dia === 15 && bendTool === 'fromax' && _bd.model === 'empirical') {
+      estimatedUseCount++;
+      if (!sessionStorage.getItem('v555_est_banana')) sessionStorage.setItem('v555_est_banana', '1');
+      const badgeText = estimatedUseCount < 3
+        ? '⚠ UPPSKATTNING'
+        : `⚠ UPPSKATTNING (använt ${estimatedUseCount} ggr — kontrollerat med provrör?)`;
+      bdBadgeEl.textContent = badgeText;
+      bdBadgeEl.setAttribute('data-estimated', 'true');
+      bdBadgeEl.setAttribute('data-use-count', String(Math.min(estimatedUseCount, 5)));
+      bdBadgeEl.classList.add('visible');
+    } else {
+      bdBadgeEl.setAttribute('data-estimated', 'false');
+      bdBadgeEl.classList.remove('visible');
+    }
+  }
+
+  // Ref-strip result
+  const refStripResult = document.getElementById('banana-ref-strip-result');
+  if (refStripResult) {
+    refStripResult.innerHTML = `<strong>← 0 mm — H-styckets ände (överkant)</strong> &nbsp;·&nbsp; M1 = ${Math.round(M1)} mm`;
+  }
+
+  // Suspicious M1
+  const suspEl = document.getElementById('banana-m1-suspicious');
+  if (suspEl) {
+    if (M1 > kapa / 2) {
+      suspEl.textContent = 'M1 är mer än halva rörlängden — är referensänden rätt? Mät från H-styckets ände.';
+      suspEl.classList.add('visible');
+    } else {
+      suspEl.classList.remove('visible');
+    }
+  }
 
   // ── Orientation comparison table (D always CC, only H varies) ───────────
   const H_in  = H_diag - r, H_ctr = H_diag, H_out = H_diag + r;
   const iIn = measureMode === 'inside', iCtr = measureMode === 'center', iOut = measureMode === 'outside';
   document.getElementById('orient-tbody').innerHTML = [
-    `<tr class="${iIn  ? 'ot-active' : ''}"><td>Insida böj</td><td>${fmt(H_in,1)} mm</td></tr>`,
-    `<tr class="${iCtr ? 'ot-active' : ''}"><td>Centrum (CC)</td><td>${fmt(H_ctr,1)} mm</td></tr>`,
-    `<tr class="${iOut ? 'ot-active' : ''}"><td>Utsida böj</td><td>${fmt(H_out,1)} mm</td></tr>`,
+    `<tr class="${iIn  ? 'ot-active' : ''}"><td>Insida böj</td><td>${Math.round(H_in)} mm</td></tr>`,
+    `<tr class="${iCtr ? 'ot-active' : ''}"><td>Centrum (CC)</td><td>${Math.round(H_ctr)} mm</td></tr>`,
+    `<tr class="${iOut ? 'ot-active' : ''}"><td>Utsida böj</td><td>${Math.round(H_out)} mm</td></tr>`,
   ].join('');
   document.getElementById('orient-rotate-note').textContent =
     `Att rotera röret 180° ändrar effektiv höjd med ≈ ${dia} mm`;
@@ -3228,6 +3503,9 @@ function calculate(forceShow = false) {
   const wallT = parseFloat(document.getElementById('wallT').value);
   const wallH = parseFloat(document.getElementById('wallH').value);
   drawDiagram(D, H_diag, L, alpha_deg, M1, dia, hojdA, hojdB, instA, instB, tBygg, wallT, wallH);
+
+  // ── Stage 6: warning hierarchy (LAST) ────────────────────────────────
+  applyWarningHierarchy(document.getElementById('results'));
 }
 
 // ── Shared SVG helpers ────────────────────────────────────────────────────
@@ -3327,6 +3605,11 @@ function drawHorizontal(D, H_diag, L, alpha_deg, M1, dia) {
   html += `<text x="${angMx}" y="${angMy+4}" fill="${ACCENT}" font-family="Share Tech Mono" font-size="10.5" text-anchor="middle">${alpha_deg.toFixed(1)}°</text>`;
 
   html += `<line x1="${tx(0)-5}" y1="${ty(0)}" x2="${tx(totalLen)+5}" y2="${ty(0)}" stroke="${TEXT_COL}" stroke-width="1"/>`;
+
+  // H-stycke end origin anchor (0 mm reference)
+  html += `<circle cx="${tx(0)}" cy="${ty(0)}" r="5" fill="${ACCENT}" opacity="0.9"/>`;
+  html += `<text x="${tx(0)}" y="${ty(0)+18}" fill="${ACCENT}" font-family="Share Tech Mono" font-size="10" text-anchor="middle" font-weight="bold">0 mm</text>`;
+  html += `<text x="${tx(0)}" y="${ty(0)+29}" fill="${ACCENT}" font-family="Share Tech Mono" font-size="8" text-anchor="middle">H-stycke</text>`;
 
   svg.innerHTML = html;
 }
@@ -3509,6 +3792,14 @@ function drawVertical(D, H_diag, L, alpha_deg, M1, dia, hojdA, hojdB, instA, ins
   // Vertical dashed reference line at xH (bend point column)
   html += `<line x1="${ux(xH)}" y1="${uy(0)+4}" x2="${ux(xH)}" y2="${padT}" stroke="${TEXT_COL}" stroke-width="1" stroke-dasharray="2,4"/>`;
 
+  // H-stycke end origin anchor (0 mm reference) — visually dominant, no label at T-koppling
+  const hOriginX = ux(xH);
+  const hOriginY = hasCtx ? uy(yTop) : uy(yTop);
+  const originLabelX = goesRight ? hOriginX - 8 : hOriginX + 8;
+  const originAnchor = goesRight ? 'end' : 'start';
+  html += `<circle cx="${hOriginX}" cy="${hOriginY}" r="6" fill="${ACCENT}" opacity="0.95"/>`;
+  html += `<text x="${originLabelX}" y="${hOriginY - 10}" fill="${ACCENT}" font-family="Share Tech Mono" font-size="10" text-anchor="${originAnchor}" font-weight="bold">← 0 mm</text>`;
+
   svg.innerHTML = html;
 }
 
@@ -3547,8 +3838,75 @@ function sbSetBendTool(tool) {
   sbLiveUpdate();
 }
 
+function sbCheckFieldWarnings() {
+  const size = parseFloat(document.getElementById('sb-diam').value) || 12;
+  const M1   = parseFloat(document.getElementById('sb-m1').value)   || 0;
+  const rB   = parseFloat(document.getElementById('sb-end').value)  || 0;
+  const D    = parseFloat(document.getElementById('sb-offset').value) || 0;
+  const A    = parseFloat(document.getElementById('sb-angle').value) || 45;
+  const clr  = parseFloat(document.getElementById('sb-clr').value)  || 43;
+
+  // Clamp checks — lead-in priority rule (RULE: lead-in overrides tail, never show both)
+  const m1HintEl  = document.getElementById('sb-m1-hint');
+  const endHintEl = document.getElementById('sb-end-hint');
+  const clampIn   = geCheckClampLength(M1, size);
+  const clampOut  = geCheckClampLength(rB, size);
+  if (m1HintEl && endHintEl) {
+    if (!clampIn.ok) {
+      m1HintEl.textContent = `Bocken slinter — röret är bara ${M1}mm framför M1 (minst ${clampIn.minRequired}mm krävs)`;
+      m1HintEl.classList.add('visible');
+      endHintEl.classList.remove('visible');
+    } else {
+      m1HintEl.classList.remove('visible');
+      if (!clampOut.ok) {
+        endHintEl.textContent = `Kort svans — minst ${clampOut.minRequired}mm rekommenderas`;
+        endHintEl.classList.add('visible');
+      } else {
+        endHintEl.classList.remove('visible');
+      }
+    }
+  }
+
+  // Tool mismatch — CLR matches Fromax preset while in manual mode
+  const clrHintEl  = document.getElementById('sb-clr-hint');
+  const fromaxClr = FROMAX_CLR[size] || FROMAX_CLR[12];
+  if (clrHintEl) {
+    if (sbBendTool === 'manual' && clr === fromaxClr) {
+      clrHintEl.textContent = 'CLR ser ut som Fromax — om ditt verktyg har annan radie hamnar röret fel';
+      clrHintEl.classList.add('visible');
+    } else {
+      clrHintEl.classList.remove('visible');
+    }
+  }
+
+  // Offset plausibility and shallow-angle checks
+  const plausEl = document.getElementById('sb-offset-plausibility-hint');
+  const angleEl = document.getElementById('sb-offset-angle-hint');
+  if (plausEl && angleEl) {
+    if (D > 0 && A > 0) {
+      const geo = geParallelOffset(D, A);
+      if (geo.L !== Infinity && D >= geo.L * 0.95) {
+        plausEl.textContent = 'Sidmåttet verkar lika stort som rörsträckan — mätte du tvärs eller längs röret?';
+        plausEl.classList.add('visible');
+      } else {
+        plausEl.classList.remove('visible');
+      }
+      if (A < 20) {
+        angleEl.textContent = `Lågvinkel-böj — är sidmåttet verkligen ${D}mm rakt tvärs?`;
+        angleEl.classList.add('visible');
+      } else {
+        angleEl.classList.remove('visible');
+      }
+    } else {
+      plausEl.classList.remove('visible');
+      angleEl.classList.remove('visible');
+    }
+  }
+}
+
 function sbLiveUpdate() {
   sbSetIntent();
+  sbCheckFieldWarnings();
 }
 
 function sbSetIntent() {
@@ -3587,8 +3945,8 @@ function sbUpdateWorkList(m1, m2) {
     <strong>Gör så här på röret:</strong>
     <ul>
       <li>Sätt tumstockens nolla på röränden där du börjar mäta.</li>
-      <li>Markera första böjen vid ${m1.toFixed(1)} mm (M1).</li>
-      <li>Mät vidare och markera andra böjen vid ${m2.toFixed(1)} mm (M2).</li>
+      <li>Markera första böjen vid ${Math.round(m1)} mm (M1).</li>
+      <li>Mät vidare och markera andra böjen vid ${Math.round(m2)} mm (M2).</li>
       <li>Bocka enligt riktningen i rutorna: först vänster, sedan höger.</li>
     </ul>`;
 }
@@ -3622,29 +3980,30 @@ function sbAutoFix() {
 }
 
 function sbCalculate() {
+  // Stage 1: field-level warnings (runs on every calculate, same as oninput)
+  sbCheckFieldWarnings();
   sbSetIntent();
 
+  // Stage 2: read inputs
+  const sideRaw = document.getElementById('sb-offset').value.trim();
   const sideLabel = UX_LABELS.D.split(' (')[0].toLowerCase();
 
-  const sideRaw  = document.getElementById('sb-offset').value.trim();
-
   if (!sideRaw) {
-    const checklist = [`✗ ${sideLabel} — hur långt ska röret flyttas?`];
-    showSuggestion('sb-warning',
-      'Nästa steg:', checklist);
+    showSuggestion('sb-warning', 'Nästa steg:', [`✗ ${sideLabel} — hur långt ska röret flyttas?`]);
     hideSuccess('sb-success');
     sbToggleAutoFix(false);
     document.getElementById('sbend-results').style.display = 'block';
     return;
   }
 
-  const D   = parseFloat(sideRaw) || 0;
-  const A   = parseFloat(document.getElementById('sb-angle').value)  || 45;
-  const M1  = parseFloat(document.getElementById('sb-m1').value)     || 0;
-  const rB  = parseFloat(document.getElementById('sb-end').value)    || 0;
+  const D    = parseFloat(sideRaw) || 0;
+  const A    = parseFloat(document.getElementById('sb-angle').value) || 45;
+  const M1   = parseFloat(document.getElementById('sb-m1').value)    || 0;
+  const rB   = parseFloat(document.getElementById('sb-end').value)   || 0;
   const size = parseFloat(document.getElementById('sb-diam').value)  || 12;
+  const clr  = parseFloat(document.getElementById('sb-clr').value)  || 43;
 
-  const clr = parseFloat(document.getElementById('sb-clr').value) || 43;
+  // Stage 3: geometry (existing engine — no new math)
   const geo = geParallelOffset(D, A);
   if (geo.L === Infinity) {
     showSuggestion('sb-warning', 'Vinkeln är ogiltig.', ['Välj en vinkel mellan 1° och 179°']);
@@ -3653,11 +4012,8 @@ function sbCalculate() {
     document.getElementById('sbend-results').style.display = 'block';
     return;
   }
-
   const { L, H } = geo;
   const rad = A * Math.PI / 180;
-  const M2  = M1 + L;
-  const cut = M1 + L + rB;
 
   const _bd = geBendDeduction({ angle_deg: A, tool: sbBendTool, size, clr });
   if (_bd.model === 'invalid') {
@@ -3669,11 +4025,37 @@ function sbCalculate() {
   }
   const bd = _bd.value;
 
+  // Marks — kaplängd = last mark rounded (RULE: no independent kaplängd calculation)
+  const marks = geComputeMarks([M1, L, rB], [bd, bd]);
+  const M2    = marks[1];
+  const cut   = marks[2];
+
+  // Stage 4: result-zone warnings
+
+  // 4a. Clamp — lead-in priority (RULE: never show both simultaneously)
+  const clampLeadEl = document.getElementById('sb-clamp-lead-result');
+  const clampTailEl = document.getElementById('sb-clamp-tail-result');
+  const clampIn     = geCheckClampLength(M1, size);
+  const clampOut    = geCheckClampLength(rB, size);
+  if (!clampIn.ok) {
+    clampLeadEl.textContent = `⚠ Bocken slinter — röret är bara ${M1}mm framför M1 (minst ${clampIn.minRequired}mm krävs)`;
+    clampLeadEl.classList.add('visible');
+    clampTailEl.classList.remove('visible');
+  } else {
+    clampLeadEl.classList.remove('visible');
+    if (!clampOut.ok) {
+      clampTailEl.textContent = `⚠ Kort svans — ${rB}mm efter M2 är för kort (minst ${clampOut.minRequired}mm rekommenderas)`;
+      clampTailEl.classList.add('visible');
+    } else {
+      clampTailEl.classList.remove('visible');
+    }
+  }
+
+  // 4b. Geometry feasibility — H < 30 means bends too close together
   if (H < 30) {
     const minSideForAngle = Math.ceil(30 * Math.tan(rad));
     const maxAngle = Math.atan(D / 30) * 180 / Math.PI;
     const anglePick = [30, 22.5, 15].find(v => v <= maxAngle);
-
     showSuggestion('sb-warning',
       `För lite längd för ${A}° böj.`,
       [
@@ -3684,65 +4066,88 @@ function sbCalculate() {
     hideSuccess('sb-success');
     sbToggleAutoFix(true);
   } else {
-    const warns = [];
-    const fromaxClr = FROMAX_CLR[size] || FROMAX_CLR[12];
-    if (sbBendTool === 'manual' && clr === fromaxClr) {
-      warns.push('CLR-värdet ser ut som Fromax-förval.');
-      warns.push(`Manuellt läge: kontrollera att ${clr} mm verkligen är CLR för ditt verktyg.`);
-    }
-
-    const clampIn = geCheckClampLength(M1, size);
-    if (!clampIn.ok) {
-      warns.push(`Minst ${clampIn.minRequired} mm rekommenderas före M1 — nu ${M1.toFixed(0)} mm.`);
-      warns.push('Lägg till mer rör före M1 så bockarverktyget får bättre grepp.');
-    } else {
-      const clampOut = geCheckClampLength(rB, size);
-      if (!clampOut.ok) {
-        warns.push(`Röret är kort efter sista böjen: minst ${clampOut.minRequired} mm rekommenderas — nu ${rB.toFixed(0)} mm.`);
-        warns.push('Det kan vara svårt att hålla röret stabilt vid sista böjen.');
-      }
-    }
-
-    if (warns.length) {
-      showSuggestion('sb-warning', 'Kontrollera innan du bockar:', warns);
-      hideSuccess('sb-success');
-    } else {
-      hideSuggestion('sb-warning');
-      showSuccess('sb-success', 'Geometrin fungerar - redo att bocka.');
-    }
+    hideSuggestion('sb-warning');
+    showSuccess('sb-success', 'Geometrin fungerar - redo att bocka.');
     sbToggleAutoFix(false);
   }
 
+  // 4c. Estimated value badge (15mm + Fromax + 90° = empirical estimate)
+  const isEstimated = size === 15 && sbBendTool === 'fromax' && _bd.model === 'empirical';
+  let bdBadgeHtml;
+  if (isEstimated) {
+    estimatedUseCount++;
+    const cap = Math.min(estimatedUseCount, 5);
+    const txt = estimatedUseCount < 3
+      ? '⚠ UPPSKATTNING'
+      : `⚠ UPPSKATTNING (använt ${estimatedUseCount} ggr — kontrollerat med provrör?)`;
+    bdBadgeHtml = `<span id="sb-bd-badge" class="result-badge result-badge-warn visible" data-estimated="true" data-use-count="${cap}">${txt}</span>`;
+    if (!sessionStorage.getItem('v555_est_sbend')) sessionStorage.setItem('v555_est_sbend', '1');
+  } else {
+    bdBadgeHtml = `<span id="sb-bd-badge" class="result-badge result-badge-warn" data-estimated="false"></span>`;
+  }
+
+  // 4d. Tool mismatch badge — consequence-first text (RULE: persists until corrected)
+  const hasMismatch = sbBendTool === 'manual' && clr === FROMAX_CLR[size];
+  const mismatchHtml = hasMismatch
+    ? `<span id="sb-mismatch-badge" class="result-badge result-badge-warn visible">⚠ Fel böjradie — offseten blir fel och kopplingarna kan spännas. Ange faktisk CLR.</span>`
+    : `<span id="sb-mismatch-badge" class="result-badge result-badge-warn"></span>`;
+
+  // Stage 5: render results
   document.getElementById('sbend-results').style.display = 'block';
-  document.getElementById('sb-cut').textContent   = cut.toFixed(1);
-  document.getElementById('sb-d-out').textContent = D.toFixed(0);
-  document.getElementById('sb-L-out').textContent = L.toFixed(1);
+
+  // Kaplängd = Math.round(last mark) — RULE: never independently rounded
+  document.getElementById('sb-cut').textContent   = Math.round(cut);
+  document.getElementById('sb-d-out').textContent = Math.round(D);
+  document.getElementById('sb-L-out').textContent = Math.round(L);
+
+  // Reference strip — RULE: reference must exist in result zone
+  const refStrip = document.getElementById('sb-ref-strip');
+  if (refStrip) {
+    refStrip.innerHTML = `<strong>← 0 mm</strong> Mät från denna ände &nbsp;·&nbsp; M1 = ${Math.round(M1)} mm &nbsp;·&nbsp; M2 = ${Math.round(M2)} mm`;
+  }
 
   document.getElementById('sb-marks-grid').innerHTML = `
     <div class="sb-mark-card sb-mark-highlight">
       <div class="sb-mark-label">M1 — Böj 1</div>
-      <div><span class="sb-mark-val">${M1.toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val">${Math.round(M1)}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">◄ Vänster</div>
     </div>
     <div class="sb-mark-card sb-mark-highlight">
       <div class="sb-mark-label">M2 — Böj 2</div>
-      <div><span class="sb-mark-val">${M2.toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val">${Math.round(M2)}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">Höger ►</div>
     </div>
     <div class="sb-mark-card">
       <div class="sb-mark-label">${UX_LABELS.H}</div>
-      <div><span class="sb-mark-val sb-mark-dim">${H.toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val sb-mark-dim">${Math.round(H)}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">Längs väggen</div>
     </div>
     <div class="sb-mark-card">
-      <div class="sb-mark-label">Böjavdrag × 2</div>
-      <div><span class="sb-mark-val sb-mark-danger">${(bd * 2).toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
-      <div class="sb-mark-dir">Per böj: ${bd.toFixed(1)} mm</div>
+      <div class="sb-mark-label">Böjavdrag × 2 ${bdBadgeHtml}</div>
+      <div>
+        <span class="sb-mark-val sb-mark-danger">${Math.round(bd * 2)}</span>
+        <span class="sb-mark-unit">mm</span>
+        ${mismatchHtml}
+      </div>
+      <div class="sb-mark-dir">Per böj: ${Math.round(bd)} mm</div>
     </div>`;
 
-  sbUpdateWorkList(M1, M2);
+  // Suspicious M1 — more than half total length suggests wrong reference end
+  const suspEl = document.getElementById('sb-m1-suspicious');
+  if (suspEl) {
+    if (M1 > cut / 2) {
+      suspEl.textContent = 'M1 är mer än halva rörlängden — är referensänden rätt?';
+      suspEl.classList.add('visible');
+    } else {
+      suspEl.classList.remove('visible');
+    }
+  }
 
+  sbUpdateWorkList(M1, M2);
   sbDrawDiagram(M1, L, rB, D, H, A);
+
+  // Stage 6: warning hierarchy — RULE: runs after all individual checks, never before
+  applyWarningHierarchy(document.getElementById('sbend-results'));
 }
 
 function sbDrawDiagram(M1, L, rB, D, H, A) {
@@ -3845,8 +4250,75 @@ function swSetBendTool(tool) {
   swLiveUpdate();
 }
 
+function swCheckFieldWarnings() {
+  const size = parseFloat(document.getElementById('sw-diam').value) || 12;
+  const M1ref = parseFloat(document.getElementById('sw-m1').value)  || 0;
+  const rEnd  = parseFloat(document.getElementById('sw-end').value) || 0;
+  const D     = parseFloat(document.getElementById('sw-offset').value) || 0;
+  const A     = parseFloat(document.getElementById('sw-angle').value)  || 45;
+  const clr   = parseFloat(document.getElementById('sw-clr').value)   || 43;
+
+  // Clamp — lead-in priority rule
+  const m1HintEl  = document.getElementById('sw-m1-hint');
+  const endHintEl = document.getElementById('sw-end-hint');
+  const clampIn   = geCheckClampLength(M1ref, size);
+  const clampOut  = geCheckClampLength(rEnd, size);
+  if (m1HintEl && endHintEl) {
+    if (!clampIn.ok) {
+      m1HintEl.textContent = `Bocken slinter — röret är bara ${M1ref}mm framför M1 (minst ${clampIn.minRequired}mm krävs)`;
+      m1HintEl.classList.add('visible');
+      endHintEl.classList.remove('visible');
+    } else {
+      m1HintEl.classList.remove('visible');
+      if (!clampOut.ok) {
+        endHintEl.textContent = `Kort svans — minst ${clampOut.minRequired}mm rekommenderas`;
+        endHintEl.classList.add('visible');
+      } else {
+        endHintEl.classList.remove('visible');
+      }
+    }
+  }
+
+  // Tool mismatch
+  const clrHintEl = document.getElementById('sw-clr-hint');
+  const fromaxClr = FROMAX_CLR[size] || FROMAX_CLR[12];
+  if (clrHintEl) {
+    if (swBendTool === 'manual' && clr === fromaxClr) {
+      clrHintEl.textContent = 'CLR ser ut som Fromax — om ditt verktyg har annan radie hamnar röret fel';
+      clrHintEl.classList.add('visible');
+    } else {
+      clrHintEl.classList.remove('visible');
+    }
+  }
+
+  // Offset plausibility and shallow-angle checks
+  const plausEl = document.getElementById('sw-offset-plausibility-hint');
+  const angleEl = document.getElementById('sw-offset-angle-hint');
+  if (plausEl && angleEl) {
+    if (D > 0 && A > 0) {
+      const geo = geParallelOffset(D, A);
+      if (geo.L !== Infinity && D >= geo.L * 0.95) {
+        plausEl.textContent = 'Sidmåttet verkar lika stort som rörsträckan — mätte du tvärs eller längs röret?';
+        plausEl.classList.add('visible');
+      } else {
+        plausEl.classList.remove('visible');
+      }
+      if (A < 20) {
+        angleEl.textContent = `Lågvinkel-böj — är sidmåttet verkligen ${D}mm rakt tvärs?`;
+        angleEl.classList.add('visible');
+      } else {
+        angleEl.classList.remove('visible');
+      }
+    } else {
+      plausEl.classList.remove('visible');
+      angleEl.classList.remove('visible');
+    }
+  }
+}
+
 function swLiveUpdate() {
   swSetIntent();
+  swCheckFieldWarnings();
 }
 
 function swSetIntent() {
@@ -3912,23 +4384,25 @@ function swUpdateWorkList(m1, m2, m3) {
     <strong>Gör så här på röret:</strong>
     <ul>
       <li>Sätt tumstockens nolla på röränden där du börjar mäta.</li>
-      <li>Markera första böjen vid ${m1.toFixed(1)} mm (M1) — bocka vänster.</li>
-      <li>Mät vidare och markera andra böjen vid ${m2.toFixed(1)} mm (M2) — bocka höger.</li>
-      <li>Markera tredje böjen vid ${m3.toFixed(1)} mm (M3) — bocka vänster.</li>
+      <li>Markera första böjen vid ${Math.round(m1)} mm (M1) — bocka vänster.</li>
+      <li>Mät vidare och markera andra böjen vid ${Math.round(m2)} mm (M2) — bocka höger.</li>
+      <li>Markera tredje böjen vid ${Math.round(m3)} mm (M3) — bocka vänster.</li>
     </ul>`;
 }
 
 function swCalculate() {
+  // Stage 1: field-level warnings
+  swCheckFieldWarnings();
   swSetIntent();
 
-  const sideRaw = document.getElementById('sw-offset').value.trim();
+  // Stage 2: read inputs
+  const sideRaw   = document.getElementById('sw-offset').value.trim();
   const heightRaw = document.getElementById('sw-height').value.trim();
   if (!sideRaw || !heightRaw) {
-    const checklist = [
-      `${sideRaw ? '✓' : '✗'} sidmått`,
+    showSuggestion('sw-warning', 'Nästa steg:', [
+      `${sideRaw   ? '✓' : '✗'} sidmått`,
       `${heightRaw ? '✓' : '✗'} total höjd`,
-    ];
-    showSuggestion('sw-warning', 'Nästa steg:', checklist);
+    ]);
     hideSuccess('sw-success');
     swToggleAutoFix(false);
     document.getElementById('swan-results').style.display = 'block';
@@ -3941,17 +4415,45 @@ function swCalculate() {
   const M1ref   = parseFloat(document.getElementById('sw-m1').value)     || 0;
   const rEnd    = parseFloat(document.getElementById('sw-end').value)    || 0;
   const size    = parseFloat(document.getElementById('sw-diam').value)   || 12;
+  const clr     = parseFloat(document.getElementById('sw-clr').value)   || 43;
 
-  const rad   = A * Math.PI / 180;
-  const L     = D / Math.sin(rad);
-  const H1    = D / Math.tan(rad);
-  const vmid  = H_total - (2 * H1);
+  // Stage 3: geometry (existing engine)
+  const rad  = A * Math.PI / 180;
+  const L    = D / Math.sin(rad);
+  const H1   = D / Math.tan(rad);
+  const vmid = H_total - (2 * H1);
 
-  const clr = parseFloat(document.getElementById('sw-clr').value) || 43;
-  const bd  = (swBendTool === 'fromax' && A === 90 && MB_EMPIRICAL_90[size] !== undefined)
-    ? MB_EMPIRICAL_90[size]
-    : clr * (1 - Math.cos(rad));
+  const _bd = geBendDeduction({ angle_deg: A, tool: swBendTool, size, clr });
+  const bd  = _bd.model === 'invalid' ? 0 : _bd.value;
 
+  const M1  = M1ref;
+  const M2  = M1 + L;
+  const M3  = M2 + vmid;
+  const M4  = M3 + L;
+  const cut = M4 + rEnd;
+
+  // Stage 4: result-zone warnings
+
+  // 4a. Clamp — lead-in priority
+  const clampLeadEl = document.getElementById('sw-clamp-lead-result');
+  const clampTailEl = document.getElementById('sw-clamp-tail-result');
+  const clampIn     = geCheckClampLength(M1ref, size);
+  const clampOut    = geCheckClampLength(rEnd, size);
+  if (!clampIn.ok) {
+    clampLeadEl.textContent = `⚠ Bocken slinter — röret är bara ${M1ref}mm framför M1 (minst ${clampIn.minRequired}mm krävs)`;
+    clampLeadEl.classList.add('visible');
+    clampTailEl.classList.remove('visible');
+  } else {
+    clampLeadEl.classList.remove('visible');
+    if (!clampOut.ok) {
+      clampTailEl.textContent = `⚠ Kort svans — ${rEnd}mm efter M4 är för kort (minst ${clampOut.minRequired}mm rekommenderas)`;
+      clampTailEl.classList.add('visible');
+    } else {
+      clampTailEl.classList.remove('visible');
+    }
+  }
+
+  // 4b. Geometry feasibility
   if (vmid < 0) {
     const minHeight = Math.ceil(2 * H1);
     const flatter = A > 30 ? 30 : 22.5;
@@ -3959,7 +4461,7 @@ function swCalculate() {
       'Det finns inte tillräckligt med utrymme för denna böj.',
       [
         `Öka total höjd till minst ${minHeight} mm`,
-        `Minska sidmåttet från ${D.toFixed(0)} mm till cirka ${Math.max(20, Math.round(D * 0.6))} mm`,
+        `Minska sidmåttet från ${Math.round(D)} mm till cirka ${Math.max(20, Math.round(D * 0.6))} mm`,
         `Testa ${flatter}° istället`,
         'Om du inte behöver byta höjd: prova S-böj-fliken.',
       ]);
@@ -3972,8 +4474,8 @@ function swCalculate() {
     showSuggestion('sw-warning',
       'Mittdelen är väldigt kort — kan vara svår att bocka rent.',
       [
-        `Öka totalhöjden med ${(50 - vmid).toFixed(0)} mm för en mer praktisk mittdel`,
-        `Eller minska sidmåttet något`,
+        `Öka totalhöjden med ${Math.round(50 - vmid)} mm för en mer praktisk mittdel`,
+        'Eller minska sidmåttet något',
         'Om höjdbytet är litet: prova S-böj-fliken.',
       ]);
     hideSuccess('sw-success');
@@ -3984,55 +4486,96 @@ function swCalculate() {
     swToggleAutoFix(false);
   }
 
-  const M1 = M1ref;
-  const M2 = M1 + L;
-  const M3 = M2 + vmid;
-  const M4 = M3 + L;
-  const cut = M4 + rEnd;
+  // 4c. Estimated value badge
+  const isEstimated = size === 15 && swBendTool === 'fromax' && _bd.model === 'empirical';
+  let bdBadgeHtml;
+  if (isEstimated) {
+    estimatedUseCount++;
+    const cap = Math.min(estimatedUseCount, 5);
+    const txt = estimatedUseCount < 3
+      ? '⚠ UPPSKATTNING'
+      : `⚠ UPPSKATTNING (använt ${estimatedUseCount} ggr — kontrollerat med provrör?)`;
+    bdBadgeHtml = `<span id="sw-bd-badge" class="result-badge result-badge-warn visible" data-estimated="true" data-use-count="${cap}">${txt}</span>`;
+    if (!sessionStorage.getItem('v555_est_swan')) sessionStorage.setItem('v555_est_swan', '1');
+  } else {
+    bdBadgeHtml = `<span id="sw-bd-badge" class="result-badge result-badge-warn" data-estimated="false"></span>`;
+  }
 
+  // 4d. Tool mismatch badge
+  const hasMismatch = swBendTool === 'manual' && clr === FROMAX_CLR[size];
+  const mismatchHtml = hasMismatch
+    ? `<span id="sw-mismatch-badge" class="result-badge result-badge-warn visible">⚠ Fel böjradie — offseten blir fel och kopplingarna kan spännas. Ange faktisk CLR.</span>`
+    : `<span id="sw-mismatch-badge" class="result-badge result-badge-warn"></span>`;
+
+  // Stage 5: render results
   document.getElementById('swan-results').style.display = 'block';
-  document.getElementById('sw-cut').textContent    = cut.toFixed(1);
-  document.getElementById('sw-d-out').textContent  = D.toFixed(0);
-  document.getElementById('sw-mid-out').textContent = vmid.toFixed(1);
+
+  document.getElementById('sw-cut').textContent     = Math.round(cut);
+  document.getElementById('sw-d-out').textContent   = Math.round(D);
+  document.getElementById('sw-mid-out').textContent = Math.round(vmid);
+
+  // Reference strip
+  const refStrip = document.getElementById('sw-ref-strip');
+  if (refStrip) {
+    refStrip.innerHTML = `<strong>← 0 mm</strong> Mät från denna ände &nbsp;·&nbsp; M1 = ${Math.round(M1)} mm &nbsp;·&nbsp; M2 = ${Math.round(M2)} mm &nbsp;·&nbsp; M3 = ${Math.round(M3)} mm`;
+  }
 
   document.getElementById('sw-marks-grid').innerHTML = `
     <div class="sb-mark-card sb-mark-highlight">
       <div class="sb-mark-label">M1 — Böj 1 (Sned upp)</div>
-      <div><span class="sb-mark-val">${M1.toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val">${Math.round(M1)}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">◄ Vänster</div>
     </div>
     <div class="sb-mark-card sb-mark-highlight">
       <div class="sb-mark-label">M2 — Böj 2 (Rak mitt)</div>
-      <div><span class="sb-mark-val">${M2.toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val">${Math.round(M2)}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">Höger ►</div>
-      <div class="sb-mark-formula">= M1 + L = ${M1.toFixed(0)} + ${L.toFixed(0)}</div>
+      <div class="sb-mark-formula">= M1 + L = ${Math.round(M1)} + ${Math.round(L)}</div>
     </div>
     <div class="sb-mark-card sb-vmid-card">
       <div class="sb-mark-label">Rak mitt (M2 → M3)</div>
-      <div><span class="sb-mark-val">${vmid.toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val">${Math.round(vmid)}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">Parallell med original</div>
-      <div class="sb-mark-formula">H − (2 × H1) = ${H_total} − (2 × ${H1.toFixed(0)})</div>
+      <div class="sb-mark-formula">H − (2 × H1) = ${Math.round(H_total)} − (2 × ${Math.round(H1)})</div>
     </div>
     <div class="sb-mark-card sb-mark-highlight">
       <div class="sb-mark-label">M3 — Böj 3 (Sned upp)</div>
-      <div><span class="sb-mark-val">${M3.toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val">${Math.round(M3)}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">◄ Vänster</div>
-      <div class="sb-mark-formula">= M2 + rak mitt = ${M2.toFixed(0)} + ${vmid.toFixed(0)}</div>
+      <div class="sb-mark-formula">= M2 + rak mitt = ${Math.round(M2)} + ${Math.round(vmid)}</div>
     </div>
     <div class="sb-mark-card">
       <div class="sb-mark-label">M4 — Slutpunkt</div>
-      <div><span class="sb-mark-val sb-mark-dim">${M4.toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val sb-mark-dim">${Math.round(M4)}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">Diagonalens slut</div>
-      <div class="sb-mark-formula">= M3 + L = ${M3.toFixed(0)} + ${L.toFixed(0)}</div>
+      <div class="sb-mark-formula">= M3 + L = ${Math.round(M3)} + ${Math.round(L)}</div>
     </div>
     <div class="sb-mark-card">
-      <div class="sb-mark-label">Böjavdrag × 3</div>
-      <div><span class="sb-mark-val sb-mark-danger">${(bd * 3).toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
-      <div class="sb-mark-dir">Per böj: ${bd.toFixed(1)} mm</div>
+      <div class="sb-mark-label">Böjavdrag × 3 ${bdBadgeHtml}</div>
+      <div>
+        <span class="sb-mark-val sb-mark-danger">${Math.round(bd * 3)}</span>
+        <span class="sb-mark-unit">mm</span>
+        ${mismatchHtml}
+      </div>
+      <div class="sb-mark-dir">Per böj: ${Math.round(bd)} mm</div>
     </div>`;
+
+  // Suspicious M1
+  const suspEl = document.getElementById('sw-m1-suspicious');
+  if (suspEl) {
+    if (M1ref > cut / 2) {
+      suspEl.textContent = 'M1 är mer än halva rörlängden — är referensänden rätt?';
+      suspEl.classList.add('visible');
+    } else {
+      suspEl.classList.remove('visible');
+    }
+  }
 
   swDrawDiagram(M1ref, L, vmid, rEnd, D, H1, A);
   swUpdateWorkList(M1, M2, M3);
+
+  // Stage 6: warning hierarchy
+  applyWarningHierarchy(document.getElementById('swan-results'));
 }
 
 function swDrawDiagram(M1ref, L, vmid, rEnd, D, H1, A) {
@@ -4177,6 +4720,7 @@ function toSetPipeSize(size) {
   });
   if (toBendTool === 'fromax')
     document.getElementById('to-clr').value = FROMAX_CLR[size] || 43;
+  toCheckFieldWarnings();
 }
 
 function toSetAngle(a, el) {
@@ -4196,6 +4740,7 @@ function toSetBendTool(tool) {
   } else {
     clrEl.readOnly = false; clrEl.classList.remove('computed');
   }
+  toCheckFieldWarnings();
 }
 
 function toUpdateD() {
@@ -4207,6 +4752,43 @@ function toUpdateD() {
   disp.textContent    = D.toFixed(1);
   formula.textContent = `= h2 − h1 = ${h2} − ${h1}`;
   disp.classList.toggle('danger', D <= 0);
+}
+
+function toCheckFieldWarnings() {
+  const M1   = parseFloat(document.getElementById('to-m1').value) || 0;
+  const rB   = parseFloat(document.getElementById('to-end').value) || 0;
+  const size = parseFloat(document.getElementById('to-diam').value) || 12;
+  const clr  = parseFloat(document.getElementById('to-clr').value) || 43;
+
+  const m1HintEl  = document.getElementById('to-m1-hint');
+  const endHintEl = document.getElementById('to-end-hint');
+  const clrHintEl = document.getElementById('to-clr-hint');
+
+  if (!m1HintEl || !endHintEl || !clrHintEl) return;
+
+  const clampIn = geCheckClampLength(M1, size);
+  if (!clampIn.ok) {
+    m1HintEl.textContent = `Bocken slinter — röret är bara ${Math.round(M1)}mm framför M1 (minst ${clampIn.minRequired}mm krävs)`;
+    m1HintEl.classList.add('visible');
+    endHintEl.classList.remove('visible');
+  } else {
+    m1HintEl.classList.remove('visible');
+    const clampOut = geCheckClampLength(rB, size);
+    if (!clampOut.ok) {
+      endHintEl.textContent = `Kort svans — minst ${clampOut.minRequired}mm rekommenderas`;
+      endHintEl.classList.add('visible');
+    } else {
+      endHintEl.classList.remove('visible');
+    }
+  }
+
+  const fromaxClr = FROMAX_CLR[size] || FROMAX_CLR[12];
+  if (toBendTool === 'manual' && clr === fromaxClr) {
+    clrHintEl.textContent = 'CLR ser ut som Fromax — om ditt verktyg har annan radie hamnar röret fel';
+    clrHintEl.classList.add('visible');
+  } else {
+    clrHintEl.classList.remove('visible');
+  }
 }
 
 function prefillTakoffsetFromTakror(currentGap, minGap, size, clr) {
@@ -4224,6 +4806,8 @@ function prefillTakoffsetFromTakror(currentGap, minGap, size, clr) {
 }
 
 function toCalculate() {
+  toCheckFieldWarnings();
+
   const h1  = parseFloat(document.getElementById('to-h1').value)  || 0;
   const h2  = parseFloat(document.getElementById('to-h2').value)  || 0;
   const A   = parseFloat(document.getElementById('to-angle').value) || 45;
@@ -4254,7 +4838,8 @@ function toCalculate() {
 
   const { L, H } = geo;
   const M2  = M1 + L;
-  const cut = M1 + L + rB;
+  const marks = [M1, M2, M2 + rB];
+  const cutDisplay = Math.round(marks[marks.length - 1]);
 
   const _bd = geBendDeduction({ angle_deg: A, tool: toBendTool, size, clr });
   if (_bd.model === 'invalid') {
@@ -4263,6 +4848,26 @@ function toCalculate() {
     return;
   }
   const bd = _bd.value;
+
+  const clampIn = geCheckClampLength(M1, size);
+  const clampOut = geCheckClampLength(rB, size);
+  const leadResEl = document.getElementById('to-lead-result');
+  const tailResEl = document.getElementById('to-tail-result');
+  if (leadResEl && tailResEl) {
+    if (!clampIn.ok) {
+      leadResEl.textContent = `Fysiskt omöjligt — röret slinter. Bara ${Math.round(M1)}mm framför M1 (minst ${clampIn.minRequired}mm krävs).`;
+      leadResEl.classList.add('visible');
+      tailResEl.classList.remove('visible');
+    } else {
+      leadResEl.classList.remove('visible');
+      if (!clampOut.ok) {
+        tailResEl.textContent = `Kort svans efter sista böjen — minst ${clampOut.minRequired}mm rekommenderas.`;
+        tailResEl.classList.add('visible');
+      } else {
+        tailResEl.classList.remove('visible');
+      }
+    }
+  }
 
   // Warnings
   const warns = [];
@@ -4273,7 +4878,6 @@ function toCalculate() {
   }
   if (h1 < 40) warns.push(`Röret sitter bara ${h1} mm från taket — det är väldigt trångt. Kontrollera att böjen får plats.`);
   if (H < 30)  warns.push(`Längs-sträckan längs väggen är bara ${H.toFixed(0)} mm — prova en mindre vinkel, t.ex. ${A > 30 ? A-15 : 15}°.`);
-  const clampIn = geCheckClampLength(M1, size);
   if (!clampIn.ok) {
     warns.push(`Minst ${clampIn.minRequired} mm rekommenderas före M1 — nu ${M1.toFixed(0)} mm.`);
     warns.push('Lägg till mer rör före M1 så bockarverktyget får bättre grepp.');
@@ -4291,29 +4895,54 @@ function toCalculate() {
   }
 
   document.getElementById('takoffset-results').style.display = 'block';
-  document.getElementById('to-cut').textContent   = cut.toFixed(0);
-  document.getElementById('to-D-out').textContent = D.toFixed(0);
-  document.getElementById('to-L-out').textContent = L.toFixed(0);
-  document.getElementById('to-H-out').textContent = H.toFixed(0);
-  document.getElementById('to-note-h1').textContent = h1;
-  document.getElementById('to-note-h2').textContent = h2;
+  document.getElementById('to-cut').textContent   = String(cutDisplay);
+  document.getElementById('to-D-out').textContent = String(Math.round(D));
+  document.getElementById('to-L-out').textContent = String(Math.round(L));
+  document.getElementById('to-H-out').textContent = String(Math.round(H));
+  document.getElementById('to-note-h1').textContent = String(Math.round(h1));
+  document.getElementById('to-note-h2').textContent = String(Math.round(h2));
+
+  const mismatchCondition = (toBendTool === 'manual' && clr === (FROMAX_CLR[size] || FROMAX_CLR[12]));
+  let bdBadgeHtml = `<span id="to-bd-badge" class="result-badge result-badge-warn" data-estimated="false"></span>`;
+  if (size === 15 && toBendTool === 'fromax' && A === 90) {
+    estimatedUseCount++;
+    const cap = Math.min(estimatedUseCount, 5);
+    const txt = estimatedUseCount < 3
+      ? '⚠ UPPSKATTNING'
+      : `⚠ UPPSKATTNING (använt ${estimatedUseCount} ggr — kontrollerat med provrör?)`;
+    bdBadgeHtml = `<span id="to-bd-badge" class="result-badge result-badge-warn visible" data-estimated="true" data-use-count="${cap}">${txt}</span>`;
+    if (!sessionStorage.getItem('v555_est_to')) sessionStorage.setItem('v555_est_to', '1');
+  }
+  const mismatchHtml = mismatchCondition
+    ? `<span id="to-mismatch-badge" class="result-badge result-badge-warn visible">⚠ Fel böjradie — offseten blir fel och kopplingarna kan spännas. Ange faktisk CLR.</span>`
+    : `<span id="to-mismatch-badge" class="result-badge result-badge-warn"></span>`;
 
   document.getElementById('to-marks-grid').innerHTML = `
     <div class="sb-mark-card sb-mark-highlight">
       <div class="sb-mark-label">M1 — Böj 1</div>
-      <div><span class="sb-mark-val">${M1.toFixed(0)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val">${Math.round(M1)}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">◄ Vänster</div>
     </div>
     <div class="sb-mark-card sb-mark-highlight">
       <div class="sb-mark-label">M2 — Böj 2</div>
-      <div><span class="sb-mark-val">${M2.toFixed(0)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val">${Math.round(M2)}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">Höger ►</div>
     </div>
     <div class="sb-mark-card">
+      <div class="sb-mark-label">Kaplängd</div>
+      <div><span class="sb-mark-val sb-mark-dim">${cutDisplay}</span> <span class="sb-mark-unit">mm</span></div>
+      <div class="sb-mark-dir">M2 + rör efter M2</div>
+    </div>
+    <div class="sb-mark-card">
       <div class="sb-mark-label">Böjavdrag × 2</div>
-      <div><span class="sb-mark-val sb-mark-danger">${(bd * 2).toFixed(0)}</span> <span class="sb-mark-unit">mm</span></div>
-      <div class="sb-mark-dir">Per böj: ${bd.toFixed(0)} mm</div>
+      <div><span class="sb-mark-val sb-mark-danger">${Math.round(bd * 2)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div class="sb-mark-dir">Per böj: ${Math.round(bd)} mm ${bdBadgeHtml} ${mismatchHtml}</div>
     </div>`;
+
+  const toRefStrip = document.getElementById('to-ref-strip');
+  if (toRefStrip) {
+    toRefStrip.innerHTML = `<strong>← Mät härifrån (0 mm)</strong> · M1 ${Math.round(M1)} mm · M2 ${Math.round(M2)} mm`;
+  }
 
   const svg = document.getElementById('takoffset-svg');
   if (svg) {
@@ -4337,14 +4966,16 @@ function toCalculate() {
     h += `<line x1="${xM1}" y1="${yHigh - 10}" x2="${xM1}" y2="${yHigh + 10}" stroke="#e8a020" stroke-width="2"/>`;
     h += `<line x1="${xM2}" y1="${yLow - 10}" x2="${xM2}" y2="${yLow + 10}" stroke="#e8a020" stroke-width="2"/>`;
 
-    h += `<text x="${xM1}" y="${yHigh - 14}" fill="#e8a020" font-family="Share Tech Mono" font-size="10" text-anchor="middle">M1 ${M1.toFixed(0)}</text>`;
-    h += `<text x="${xM2}" y="${yLow + 24}" fill="#e8a020" font-family="Share Tech Mono" font-size="10" text-anchor="middle">M2 ${M2.toFixed(0)}</text>`;
-    h += `<text x="${(xM1 + xM2) / 2}" y="${(yHigh + yLow) / 2 - 8}" fill="#3a4a35" font-family="Share Tech Mono" font-size="9" text-anchor="middle">L ${L.toFixed(0)} mm</text>`;
+    h += `<text x="${xM1}" y="${yHigh - 14}" fill="#e8a020" font-family="Share Tech Mono" font-size="10" text-anchor="middle">M1 ${Math.round(M1)}</text>`;
+    h += `<text x="${xM2}" y="${yLow + 24}" fill="#e8a020" font-family="Share Tech Mono" font-size="10" text-anchor="middle">M2 ${Math.round(M2)}</text>`;
+    h += `<text x="${(xM1 + xM2) / 2}" y="${(yHigh + yLow) / 2 - 8}" fill="#3a4a35" font-family="Share Tech Mono" font-size="9" text-anchor="middle">L ${Math.round(L)} mm</text>`;
 
     svg.setAttribute('viewBox', `0 0 ${W} ${Hsvg}`);
     svg.setAttribute('height', String(Hsvg));
     svg.innerHTML = h;
   }
+
+  applyWarningHierarchy(document.getElementById('takoffset-results'));
 }
 
 // ══ TAKRÖR 90° ═══════════════════════════════════════════════════════════
@@ -4354,9 +4985,37 @@ function trSetPipeSize(size) {
     const el = document.getElementById(`tr-opt-${s}`);
     if (el) el.classList.toggle('checked', s === size);
   });
+  trCheckFieldWarnings();
+}
+
+function trCheckFieldWarnings() {
+  const s1   = parseFloat(document.getElementById('tr-seg1').value) || 0;
+  const s4   = parseFloat(document.getElementById('tr-seg4').value) || 0;
+  const size = parseFloat(document.getElementById('tr-diam').value) || 12;
+  const s1HintEl = document.getElementById('tr-s1-hint');
+  const s4HintEl = document.getElementById('tr-s4-hint');
+  if (!s1HintEl || !s4HintEl) return;
+
+  const clampIn = geCheckClampLength(s1, size);
+  if (!clampIn.ok) {
+    s1HintEl.textContent = `Bocken slinter — röret är bara ${Math.round(s1)}mm före M1 (minst ${clampIn.minRequired}mm krävs)`;
+    s1HintEl.classList.add('visible');
+    s4HintEl.classList.remove('visible');
+  } else {
+    s1HintEl.classList.remove('visible');
+    const clampOut = geCheckClampLength(s4, size);
+    if (!clampOut.ok) {
+      s4HintEl.textContent = `Kort svans — minst ${clampOut.minRequired}mm rekommenderas`;
+      s4HintEl.classList.add('visible');
+    } else {
+      s4HintEl.classList.remove('visible');
+    }
+  }
 }
 
 function trCalculate(forceShow = false) {
+  trCheckFieldWarnings();
+
   if (forceShow) trHasCalculated = true;
   if (!trHasCalculated) {
     document.getElementById('tr-results').style.display = 'none';
@@ -4383,7 +5042,9 @@ function trCalculate(forceShow = false) {
   const M1  = m1ref + s1;
   const M2  = M1 + s2 - bd;
   const M3  = M2 + s3 - bd;
-  const cut = M3 + s4 - bd;
+  const marks = [M1, M2, M3, M3 + s4 - bd];
+  const cut = marks[marks.length - 1];
+  const cutDisplay = Math.round(cut);
   const totalBd = bd * 3;
 
   const pipeRadius = size / 2;
@@ -4400,6 +5061,26 @@ function trCalculate(forceShow = false) {
   const wallShort = minWall - wallgap;
   const wallOk    = wallgap >= minWall;
   const ceilOk    = gap >= minGap;
+
+  const clampIn = geCheckClampLength(s1, size);
+  const clampOut = geCheckClampLength(s4, size);
+  const trS1Res = document.getElementById('tr-s1-result');
+  const trS4Res = document.getElementById('tr-s4-result');
+  if (trS1Res && trS4Res) {
+    if (!clampIn.ok) {
+      trS1Res.textContent = `Fysiskt omöjligt — röret slinter. Bara ${Math.round(s1)}mm före M1 (minst ${clampIn.minRequired}mm krävs).`;
+      trS1Res.classList.add('visible');
+      trS4Res.classList.remove('visible');
+    } else {
+      trS1Res.classList.remove('visible');
+      if (!clampOut.ok) {
+        trS4Res.textContent = `Kort svans efter sista böjen — minst ${clampOut.minRequired}mm rekommenderas.`;
+        trS4Res.classList.add('visible');
+      } else {
+        trS4Res.classList.remove('visible');
+      }
+    }
+  }
 
   // Build warning text
   const warnEl = document.getElementById('tr-clr-warn');
@@ -4422,10 +5103,26 @@ function trCalculate(forceShow = false) {
     warnEl.classList.remove('visible');
   }
 
-  document.getElementById('tr-bd-note').textContent  = `${bd} mm`;
-  document.getElementById('tr-cut').textContent      = cut.toFixed(1);
+  document.getElementById('tr-bd-note').textContent  = `${Math.round(bd)} mm`;
+  document.getElementById('tr-cut').textContent      = String(cutDisplay);
   document.getElementById('tr-total-bd').textContent = `-${totalBd.toFixed(0)}`;
   document.getElementById('tr-results').style.display = 'block';
+
+  let trBdBadgeHtml = `<span id="tr-bd-badge" class="result-badge result-badge-warn" data-estimated="false"></span>`;
+  if (size === 15) {
+    estimatedUseCount++;
+    const cap = Math.min(estimatedUseCount, 5);
+    const txt = estimatedUseCount < 3
+      ? '⚠ UPPSKATTNING'
+      : `⚠ UPPSKATTNING (använt ${estimatedUseCount} ggr — kontrollerat med provrör?)`;
+    trBdBadgeHtml = `<span id="tr-bd-badge" class="result-badge result-badge-warn visible" data-estimated="true" data-use-count="${cap}">${txt}</span>`;
+    if (!sessionStorage.getItem('v555_est_tr')) sessionStorage.setItem('v555_est_tr', '1');
+  }
+
+  const trRefStrip = document.getElementById('tr-ref-strip');
+  if (trRefStrip) {
+    trRefStrip.innerHTML = `<strong>← 0 mm — START-änden (längs vägg)</strong> · M1 ${Math.round(M1)} mm · M2 ${Math.round(M2)} mm · M3 ${Math.round(M3)} mm`;
+  }
 
   // Helper: status indicator
   const ok  = (v, min) => v >= min
@@ -4435,25 +5132,25 @@ function trCalculate(forceShow = false) {
   document.getElementById('tr-marks-grid').innerHTML = `
     <div class="sb-mark-card sb-mark-highlight">
       <div class="sb-mark-label">M1 — Böj 1</div>
-      <div><span class="sb-mark-val">${M1.toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val">${Math.round(M1)}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">90° höger</div>
       <div class="sb-mark-formula">= ${m1ref > 0 ? m1ref+' + ' : ''}S1 = ${s1}</div>
     </div>
     <div class="sb-mark-card sb-mark-highlight">
       <div class="sb-mark-label">M2 — Böj 2</div>
-      <div><span class="sb-mark-val">${M2.toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val">${Math.round(M2)}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">90° höger</div>
       <div class="sb-mark-formula">= M1 + S2 − bd = ${M1.toFixed(0)} + ${s2} − ${bd}</div>
     </div>
     <div class="sb-mark-card sb-mark-highlight">
       <div class="sb-mark-label">M3 — Böj 3 (uppgång)</div>
-      <div><span class="sb-mark-val">${M3.toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val">${Math.round(M3)}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">90° upp genom tak</div>
       <div class="sb-mark-formula">= M2 + S3 − bd = ${M2.toFixed(0)} + ${s3} − ${bd}</div>
     </div>
     <div class="sb-mark-card">
       <div class="sb-mark-label">Kaplängd</div>
-      <div><span class="sb-mark-val sb-mark-dim">${cut.toFixed(1)}</span> <span class="sb-mark-unit">mm</span></div>
+      <div><span class="sb-mark-val sb-mark-dim">${cutDisplay}</span> <span class="sb-mark-unit">mm</span></div>
       <div class="sb-mark-dir">Totalt rör att kapa</div>
       <div class="sb-mark-formula">M3 + S4 − bd = ${M3.toFixed(0)} + ${s4} − ${bd}</div>
     </div>
@@ -4472,12 +5169,14 @@ function trCalculate(forceShow = false) {
     <div class="sb-mark-card">
       <div class="sb-mark-label">Böjavdrag × 3</div>
       <div><span class="sb-mark-val sb-mark-danger">−${totalBd}</span> <span class="sb-mark-unit">mm</span></div>
-      <div class="sb-mark-dir">Per böj: ${bd} mm (empiriskt)</div>
+      <div class="sb-mark-dir">Per böj: ${Math.round(bd)} mm (empiriskt) ${trBdBadgeHtml}</div>
     </div>`;
 
   trDrawPlan(s1, s2, s3, s4, m1ref, gap, M1, M2, M3);
   trDrawSide(s1, s2, s3, s4, gap, clr, M1, M2, M3, bd);
   trDraw3D(s1, s2, s3, s4, gap, wallgap, clr, M1, M2, M3);
+
+  applyWarningHierarchy(document.getElementById('tr-results'));
 }
 
 function trDrawPlan(s1, s2, s3, s4, m1ref, gap, M1val, M2val, M3val) {
@@ -5033,6 +5732,20 @@ window.onload = () => {
   // Init multi-bend tab
   mbUpdateDeductBadge();
   mbRenderSegments();
+  toCheckFieldWarnings();
+  trCheckFieldWarnings();
+
+  // Init Bananböj ref-strip and session note
+  const bRefStripInput = document.getElementById('banana-ref-strip-input');
+  if (bRefStripInput) {
+    bRefStripInput.innerHTML = '<strong>← 0 mm — H-styckets ände (överkant)</strong>';
+  }
+  const bRefNote = document.getElementById('banana-ref-note');
+  if (bRefNote && !sessionStorage.getItem('v555_ref_banana')) {
+    bRefNote.innerHTML = 'Alla mått räknas från H-styckets ände — inte från T-kopplingen' +
+      ' <button onclick="sessionStorage.setItem(\'v555_ref_banana\',\'1\'); document.getElementById(\'banana-ref-note\').classList.remove(\'visible\')">✕</button>';
+    bRefNote.classList.add('visible');
+  }
 };
 </script>
 </body>
