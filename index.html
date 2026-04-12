@@ -145,6 +145,19 @@
   .bsc-angle .bsc-val { font-size:1.1rem; color:var(--text); }
   .banana-hidden { display:none !important; }
   .banana-instick-legend { margin-top: 8px; }
+  .banana-mini-btn {
+    margin-top: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--accent2);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--accent2);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+  }
+  .banana-mini-btn:hover { background: #0a1a0d; }
 
   /* ── ANGLE PRESETS ── */
   .preset-row {
@@ -1304,6 +1317,8 @@
         <label for="m1val">M1 — Bockningsmärke A</label>
         <input type="number" id="m1val" value="50" min="1" step="1" oninput="bananaClampCheck()" title="M1 från H-stycke-änden i millimeter">
         <div class="hint">Från <strong>H-stycke-änden</strong> (överkant) [mm]</div>
+        <button type="button" class="banana-mini-btn" onclick="bananaAutoFillM1()">Autofyll M1 från höjder</button>
+        <div id="banana-m1-auto-hint" class="hint"></div>
         <div id="banana-m1-hint" class="hint-danger"></div>
       </div>
       <div class="field">
@@ -3728,6 +3743,49 @@ function onHeightInput() {
   } else {
     disp.value = '';
   }
+}
+
+function bananaAutoFillM1() {
+  const hintEl = document.getElementById('banana-m1-auto-hint');
+  const setHint = (msg) => { if (hintEl) hintEl.textContent = msg; };
+
+  const D = parseFloat(document.getElementById('djup').value);
+  const instB = parseFloat(document.getElementById('instickB').value) || 0;
+  const tBygg = parseFloat(document.getElementById('tbygger').value) || 0;
+  const A = parseFloat(document.getElementById('hojdA').value);
+  const B = parseFloat(document.getElementById('hojdB').value);
+
+  if (isNaN(D) || D <= 0) { setHint('Fyll i giltigt sidmått (D) först.'); return; }
+  if (isNaN(A) || isNaN(B) || B <= A + tBygg) {
+    setHint('Höjderna är ogiltiga. Kontrollera A, B och T-bygg.');
+    return;
+  }
+
+  const H_rise = B - (A + tBygg);
+  let H_diag;
+
+  if (calcMode === 'vinkel') {
+    if (lockedAngle === null) { setHint('Välj böjvinkel först för att autofylla M1.'); return; }
+    const geo = geParallelOffset(D, lockedAngle);
+    if (geo.L === Infinity) { setHint('Kunde inte räkna H från vinkel.'); return; }
+    H_diag = geo.H;
+  } else {
+    H_diag = parseFloat(document.getElementById('hojd').value);
+    if (isNaN(H_diag) || H_diag <= 0) { setHint('Fyll i giltig rak stigning (H) först.'); return; }
+  }
+
+  const freeBefore = H_rise - H_diag;
+  const m1 = freeBefore + instB;
+  if (!isFinite(m1) || m1 <= 0) {
+    setHint('M1 blir ogiltigt med nuvarande värden. Kontrollera höjder/vinkel.');
+    return;
+  }
+
+  const roundedM1 = Math.max(1, Math.round(m1));
+  document.getElementById('m1val').value = roundedM1;
+  setHint(`Autofylld M1: ${roundedM1} mm (från H-stycke).`);
+  bananaClampCheck();
+  if (hasCalculatedMain) calculate();
 }
 
 function updateHFromAngle() {
