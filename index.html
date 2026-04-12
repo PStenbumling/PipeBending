@@ -3890,7 +3890,7 @@ function bananaClampCheck() {
   if (freeBefore > 0) {
     const clamp = geCheckClampLength(freeBefore, dia);
     if (!clamp.ok) {
-      hintEl.textContent = `Bocken slinter — röret är bara ${freeBefore}mm framför M1 (minst ${clamp.minRequired}mm krävs)`;
+      hintEl.textContent = `Bocken slinter om du kapar först — röret är bara ${freeBefore}mm framför M1 (minst ${clamp.minRequired}mm krävs). Lösning: bocka först på hel längd, kapa sen.`;
       hintEl.classList.add('visible');
       return;
     }
@@ -3933,8 +3933,9 @@ function calculate(forceShow = false) {
     heightCompatEl.textContent = '';
   }
 
-  const M1         = m1val;
-  const freeBefore = M1 - instB;   // free straight pipe from H face to bend mark
+  let M1 = m1val;
+  let freeBefore = M1 - instB;   // free straight pipe from H face to bend mark
+  let autoM1Applied = false;
 
   let alpha_deg, alpha_rad, H_diag, L;
 
@@ -3975,12 +3976,25 @@ function calculate(forceShow = false) {
   }
 
   if (heightCompatEl && calcMode === 'vinkel' && hasHeights) {
-    const riseNeeded = freeBefore + H_diag;
+    const manualM1 = M1;
+    const manualFreeBefore = freeBefore;
+    const derivedFreeBefore = H_rise - H_diag;
+    const derivedM1 = instB + derivedFreeBefore;
+    const riseNeeded = manualFreeBefore + H_diag;
     const deltaRise = H_rise - riseNeeded;
+
+    if (bananaMode === 'simple' && derivedFreeBefore > 0 && Math.abs(deltaRise) >= 2) {
+      M1 = derivedM1;
+      freeBefore = derivedFreeBefore;
+      autoM1Applied = true;
+      const m1Input = document.getElementById('m1val');
+      if (m1Input) m1Input.value = Math.round(M1);
+    }
+
     if (Math.abs(deltaRise) >= 2) {
       const suggestedM1 = Math.max(1, Math.round(instB + Math.max(0, H_rise - H_diag)));
       heightCompatEl.textContent =
-        `Måtten går inte ihop i vinkelläge: höjderna ger stigning ${Math.round(H_rise)}mm men vinkel ${Math.round(alpha_deg)}° + M1 ${Math.round(M1)}mm kräver ${Math.round(riseNeeded)}mm. Kapa räknas på vinkeln. Testa M1 ≈ ${suggestedM1}mm eller Fri-läge.`;
+        `Måtten går inte ihop i vinkelläge: höjderna ger stigning ${Math.round(H_rise)}mm men vinkel ${Math.round(alpha_deg)}° + M1 ${Math.round(manualM1)}mm kräver ${Math.round(riseNeeded)}mm. Kapa räknas på vinkeln. Testa M1 ≈ ${suggestedM1}mm eller Fri-läge.`;
       heightCompatEl.classList.add('visible');
     }
   }
@@ -4069,7 +4083,9 @@ function calculate(forceShow = false) {
       document.getElementById('bsc-angle').textContent = Math.round(alpha_deg);
       const bscNote = document.getElementById('bsc-note');
       if (bscNote) {
-        bscNote.textContent = 'Mät alltid M1 från H-stycket - inte från T-kopplingen.';
+        bscNote.textContent = autoM1Applied
+          ? 'M1 justerades från höjderna för att matcha vald vinkel. Mät alltid från H-stycket.'
+          : 'Mät alltid M1 från H-stycket - inte från T-kopplingen.';
         if (!sessionStorage.getItem('banana_simple_tip')) sessionStorage.setItem('banana_simple_tip', '1');
       }
       simpleCard.classList.add('visible');
@@ -4085,7 +4101,7 @@ function calculate(forceShow = false) {
     if (freeBefore > 0) {
       const clampLead = geCheckClampLength(freeBefore, dia);
       if (!clampLead.ok) {
-        clampLeadEl.textContent = `Bocken slinter — röret är bara ${freeBefore}mm framför M1 (minst ${clampLead.minRequired}mm krävs)`;
+        clampLeadEl.textContent = `Bocken slinter om du kapar först — röret är bara ${freeBefore}mm framför M1 (minst ${clampLead.minRequired}mm krävs). Bocka först på hel längd och kapa efter böj.`;
         clampLeadEl.classList.add('visible');
       } else {
         clampLeadEl.classList.remove('visible');
