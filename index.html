@@ -1402,7 +1402,7 @@
           <li><strong>Stocklängd:</strong> Fyll i om röret är för kort — appen visar var du skarvar</li>
         </ul>
         <div class="intro-tip">💡 Märk alltid från samma ände (START). Blanda inte referensändar på halvvägs — då stämmer inte böjpositionerna.</div>
-        <div class="intro-extra">⚙ U-bockläge sätter upp ett 4-böjars omlopp direkt. Skarv med muff: appen visar märkpositioner på pjäs 1 och pjäs 2 separat utan att ändra grundmåtten. Motsvarar Trappan-metoden i fält (appens beräkning använder böjavdrag): 12 mm ≈ 1.9, 15 mm ≈ 2.3.</div>
+        <div class="intro-extra">⚙ U-bockläge sätter upp ett 4-böjars omlopp direkt. Skarv med muff: appen visar märkpositioner på pjäs 1 och pjäs 2 separat utan att ändra grundmåtten. Trappan-märkningstekniken (fält): rörmokare räknar 1.9× eller 2.3× böjavdrag för märkavstånden. Appen räknar samma böjavdrag direkt — märken blir identiska.</div>
       </div>
       <div class="mb-mode-toggle" id="mb-mode-toggle">
         <button type="button" class="mbm-btn active" data-mbmode="simple" onclick="mbSetMode('simple')">Enkelt</button>
@@ -2612,7 +2612,7 @@ function mbSetMode(mode) {
         if (!sessionStorage.getItem('mb_simple_tip')) {
           note.textContent = 'Tips: märk alla positioner från samma START-ände innan du börjar bocka';
         } else {
-          note.textContent = 'Motsvarar Trappan-metoden i fält - appen räknar med böjavdrag per böj.';
+          note.textContent = 'Fältteknik "Trappan": 1.9× (12mm) eller 2.3× böjavdrag. Appen räknar samma värde direkt.';
         }
       }
       simpleCard.classList.add('visible');
@@ -2834,7 +2834,7 @@ function mbCalculate() {
           note.textContent = 'Tips: märk alla positioner från samma START-ände innan du börjar bocka';
           sessionStorage.setItem('mb_simple_tip', '1');
         } else {
-          note.textContent = 'Motsvarar Trappan-metoden i fält - appen räknar med böjavdrag per böj.';
+          note.textContent = 'Fältteknik "Trappan": 1.9× (12mm) eller 2.3× böjavdrag. Appen räknar samma värde direkt.';
         }
       }
       mbSimpleCard.classList.add('visible');
