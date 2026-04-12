@@ -623,6 +623,27 @@
     font-size: 0.72rem;
     line-height: 1.45;
   }
+  .mb-comp-guard {
+    display: none;
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: #10150f;
+    border: 1px solid #2a3820;
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+  }
+  .mb-comp-guard.visible { display: block; }
+  .mb-comp-guard-text {
+    color: var(--text);
+    font-size: 0.74rem;
+    line-height: 1.45;
+    margin-bottom: 8px;
+  }
+  .mb-comp-guard-hint {
+    color: var(--text-dim);
+    font-size: 0.69rem;
+    margin-top: 8px;
+  }
   .mb-seg-meta { display: block; font-size: 0.62rem; color: var(--text-dim); }
   @media (max-width: 760px) {
     .mb-seg-header {
@@ -1561,6 +1582,11 @@
           </div>
         </div>
         <div id="mb-comp-note" class="mb-comp-note">Auto: appen räknar justeringar från 20/10 direkt. Ingen manuell +/- krävs.</div>
+        <div id="mb-comp-guard" class="mb-comp-guard">
+          <div id="mb-comp-guard-text" class="mb-comp-guard-text">Tips: Mellansträckor verkar använda olika referenser (centrum/kant). Det kan göra hörnet för tight.</div>
+          <button type="button" class="mb-add-btn" onclick="mbApplyEdgeReferenceMiddle()">Använd kant-referens för mellansträckor</button>
+          <div class="mb-comp-guard-hint">För trappor är mellansträckor oftast vägg→kant (0 mm).</div>
+        </div>
       </div>
 
       <!-- Segments -->
@@ -2701,6 +2727,7 @@ let mbDirs     = ['L', 'R', 'R'];  // length = mbSegments.length - 1
 let mbAdjustments = mbSegments.map(() => 0);
 let mbMode = 'simple';
 let mbMeasurementMode = 'practical';
+let mbMiddleReferenceMode = 'auto';
 
 function mbFormatPracticalDistance(mm) {
   const rounded = Math.round(mm);
@@ -2708,6 +2735,10 @@ function mbFormatPracticalDistance(mm) {
   const base = Math.floor(rounded / 100) * 100;
   const rest = rounded - base;
   return { rounded, meters, base, rest };
+}
+
+function mbAdjustmentMatches(value, target) {
+  return Math.abs((parseFloat(value) || 0) - target) < 0.001;
 }
 
 function mbSyncAdjustmentsLength() {
@@ -2753,9 +2784,44 @@ function mbRecomputeAdjustments() {
   // Middle segments: deterministic wall-based alternation (-,+,-,+ ...)
   if (useClamp) {
     for (let i = 1; i < n - 1; i++) {
-      mbAdjustments[i] = (i % 2 === 1) ? -build : build;
+      if (mbMiddleReferenceMode === 'edge') {
+        mbAdjustments[i] = 0;
+      } else {
+        mbAdjustments[i] = (i % 2 === 1) ? -build : build;
+      }
     }
   }
+}
+
+function mbShouldShowReferenceGuard() {
+  const { useClamp, build } = mbGetFixtureConfig();
+  if (mbMode !== 'simple' || !useClamp || build <= 0 || mbMiddleReferenceMode !== 'auto') return false;
+  const middle = mbAdjustments.slice(1, -1);
+  if (middle.length < 2 || mbDirs.length < 2) return false;
+  const hasNeg = middle.some(v => mbAdjustmentMatches(v, -build));
+  const hasZeroOrPos = middle.some(v => mbAdjustmentMatches(v, 0) || mbAdjustmentMatches(v, build));
+  return hasNeg && hasZeroOrPos;
+}
+
+function mbUpdateReferenceGuard() {
+  const guard = document.getElementById('mb-comp-guard');
+  const text = document.getElementById('mb-comp-guard-text');
+  if (!guard || !text) return;
+  if (mbShouldShowReferenceGuard()) {
+    text.textContent = 'Tips: Mellansträckor verkar använda olika referenser (centrum/kant). Det kan göra hörnet för tight.';
+    guard.classList.add('visible');
+  } else {
+    guard.classList.remove('visible');
+  }
+}
+
+function mbApplyEdgeReferenceMiddle() {
+  mbMiddleReferenceMode = 'edge';
+  mbRecomputeAdjustments();
+  mbRenderSegments();
+  mbUpdateCompNote();
+  mbUpdateReferenceGuard();
+  if (document.getElementById('mb-results')?.style.display === 'block') mbCalculate();
 }
 
 function mbUpdateCompNote() {
@@ -2763,8 +2829,9 @@ function mbUpdateCompNote() {
   if (!note) return;
   const { useClamp, useInstick, build, instick } = mbGetFixtureConfig();
   const adjTotal = mbAdjustments.reduce((s, v) => s + (parseFloat(v) || 0), 0);
+  const middleModeText = mbMiddleReferenceMode === 'edge' ? 'kant-referens i mitten' : 'auto i mitten';
   note.textContent =
-    `Fäste-komp: ${useClamp ? 'PÅ' : 'AV'} | instick: ${useInstick ? 'PÅ' : 'AV'} | bygg = ${Math.round(build)} mm | instick ände = ${Math.round(instick)} mm | autojustering totalt = ${adjTotal >= 0 ? '+' : ''}${Math.round(adjTotal)} mm`;
+    `Fäste-komp: ${useClamp ? 'PÅ' : 'AV'} | instick: ${useInstick ? 'PÅ' : 'AV'} | bygg = ${Math.round(build)} mm | instick ände = ${Math.round(instick)} mm | ${middleModeText} | autojustering totalt = ${adjTotal >= 0 ? '+' : ''}${Math.round(adjTotal)} mm`;
 }
 
 function mbApplySnaplockPreset() {
@@ -2784,9 +2851,11 @@ function mbInitCompInputs() {
     const el = document.getElementById(id);
     if (!el) return;
     const refresh = () => {
+      if (id === 'mb-use-clamp' || id === 'mb-fixture-build') mbMiddleReferenceMode = 'auto';
       mbRecomputeAdjustments();
       mbRenderSegments();
       mbUpdateCompNote();
+      mbUpdateReferenceGuard();
       if (document.getElementById('mb-results')?.style.display === 'block') mbCalculate();
     };
     el.addEventListener('input', refresh);
@@ -2794,6 +2863,7 @@ function mbInitCompInputs() {
   });
   mbRecomputeAdjustments();
   mbUpdateCompNote();
+  mbUpdateReferenceGuard();
 }
 
 function mbSetMode(mode) {
@@ -2827,6 +2897,7 @@ function mbSetMode(mode) {
       simpleCard.classList.remove('visible');
     }
   }
+  mbUpdateReferenceGuard();
 }
 
 function mbGetCLR() {
@@ -3225,6 +3296,7 @@ function mbCalculate() {
   mbDrawDiagram(marks, nBends, total, bd, effectiveSegments);
   mbDrawIsoDiagram(marks, nBends, total, effectiveSegments);
   document.getElementById('mb-results').style.display = 'block';
+  mbUpdateReferenceGuard();
 
   // v0.5.5 — warning hierarchy (RULE: runs after all individual checks)
   applyWarningHierarchy(document.getElementById('mb-results'));
