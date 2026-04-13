@@ -1385,16 +1385,15 @@
   <div class="panel">
     <div class="intro-card">
       <h3>Bananböj — en enkel böj mellan två kopplingar</h3>
-      <p>Röret ska gå diagonalt från en T-koppling (nere) till ett H-stycke (uppe). Du gör en böj — appen räknar ut kaplängd och märkposition åt dig.</p>
+      <p>Röret böjs först och kapas sist. Appen visar var du märker och hur långt röret ska vara.</p>
       <ul>
-        <li><strong>Sidmått:</strong> Hur långt åt sidan röret förflyttas, mätt centrum till centrum</li>
-        <li><strong>Bockningsmärke M1:</strong> Avstånd från framtida kaplinje till böjpunkten</li>
-        <li><strong>Instick:</strong> Hur långt röret sticks in i T-koppling respektive H-stycke</li>
-        <li><strong>Montagehöjder:</strong> Hur högt respektive koppling sitter (mäts från golv eller referens)</li>
-        <li><strong>Böjvinkel:</strong> Välj förval eller låt appen räkna ut den automatiskt</li>
+        <li><strong>Sidmått:</strong> Förflyttningen mellan kopplingarna</li>
+        <li><strong>Bockningsmärke (M1):</strong> Mäts från framtida kaplinje</li>
+        <li><strong>Instick:</strong> Hur långt röret går in i kopplingarna</li>
+        <li><strong>Höjder:</strong> Hjälper appen räkna vinkel och märkning</li>
       </ul>
-      <div class="intro-tip">💡 Mät M1 från <strong>framtida kaplinje</strong>.<br>👉 Mäter du från nuvarande rörände hamnar böjen fel och röret passar inte.</div>
-      <div class="intro-extra">⚙ Så gör du: 1) Fyll i sidmått och höjder. 2) Ange M1 och instick. 3) Klicka Beräkna — appen visar kaplängd och böjmärke.</div>
+      <div class="intro-tip">💡 Bockningsmärke (M1) mäts från <strong>framtida kaplinje</strong>.</div>
+      <div class="intro-extra">⚙ Så gör du: märk upp röret, lägg bockningsmärket på 0-strecket, bocka och kapa sist.</div>
     </div>
     <div class="banana-mode-toggle" id="banana-mode-toggle">
       <button type="button" class="bm-btn active" data-bmode="simple" onclick="setBananaMode('simple')">Enkelt</button>
@@ -1556,7 +1555,7 @@
 
     <div id="banana-simple-card" class="banana-simple-card banana-simple-only">
       <div class="bsc-row"><span class="bsc-label">Kapa röret till</span><span class="bsc-val" id="bsc-kapa">—</span><span class="bsc-unit">mm</span></div>
-      <div class="bsc-row"><span class="bsc-label">Märk M1 från framtida kaplinje</span><span class="bsc-val" id="bsc-m1">—</span><span class="bsc-unit">mm</span></div>
+      <div class="bsc-row"><span class="bsc-label">Bockningsmärke (M1) från CUT</span><span class="bsc-val" id="bsc-m1">—</span><span class="bsc-unit">mm</span></div>
       <div class="bsc-row bsc-angle"><span class="bsc-label">Böj till</span><span class="bsc-val" id="bsc-angle">—</span><span class="bsc-unit">grader</span></div>
       <div id="bsc-note" class="hint"></div>
     </div>
@@ -4193,18 +4192,18 @@ function m1PracticalRenderStrategy() {
 
   if (strategy === 'A') {
     return `<div class="m1p-detail">
-      <strong>Flytta böjpunkten ${shortfall} mm längre in på röret.</strong>
+      <strong>Flytta märket ${shortfall} mm inåt.</strong>
       <div class="m1p-adj-row">
-        <span class="m1p-adj-label">Nytt M1</span>
+        <span class="m1p-adj-label">Nytt märke</span>
         <span class="m1p-adj-val">${M1_MIN} mm</span>
         <span class="m1p-adj-note">(+${shortfall} mm)</span>
       </div>
       <div class="m1p-adj-row">
-        <span class="m1p-adj-label">Ny kaplängd</span>
+        <span class="m1p-adj-label">Ny kapa</span>
         <span class="m1p-adj-val">${adjKapaA} mm</span>
         <span class="m1p-adj-note">(+${shortfall} mm)</span>
       </div>
-      <p class="m1p-note">Böjvinkel och H-stigning är oförändrade. Röret kapas ${shortfall} mm längre — böjpunkten sitter ${M1_MIN} mm från kaplinjen.</p>
+      <p class="m1p-note">Bocka först. Kapa sist.</p>
     </div>`;
   }
 
@@ -4214,29 +4213,29 @@ function m1PracticalRenderStrategy() {
     const uKapa = Math.round(kapa + delta);
     const sign  = delta >= 0 ? '+' : '';
     return `<div class="m1p-detail">
-      <strong>Ange önskat M1-värde:</strong>
+      <strong>Välj eget märkavstånd.</strong>
       <div class="m1p-input-row">
-        <label>M1 =</label>
+        <label>Märke =</label>
         <input type="number" id="m1p-user-m1" value="${uM1}" min="1" step="1" oninput="m1PracticalUserM1(this.value)"> mm
       </div>
       <div class="m1p-adj-row">
-        <span class="m1p-adj-label">Kaplängd</span>
+        <span class="m1p-adj-label">Kapa</span>
         <span class="m1p-adj-val">${uKapa} mm</span>
-        <span class="m1p-adj-note">${sign}${delta} mm vs beräknat</span>
+        <span class="m1p-adj-note">${sign}${delta} mm</span>
       </div>
-      <p class="m1p-note">Böjvinkel och H-stigning är oförändrade. Kaplängden justeras linjärt med M1-förändringen.</p>
+      <p class="m1p-note">Vinkeln ändras inte.</p>
     </div>`;
   }
 
   if (strategy === 'C') {
     return `<div class="m1p-detail">
-      <strong>Frimontage — utan fast M1-märke.</strong>
+      <strong>Frimontage.</strong>
       <ol class="m1p-steps">
-        <li>Bocka röret på full längd utan märke — uppskatta böjpunkten visuellt.</li>
-        <li>Prova mot H-stycke och T-koppling — justera bocken tills geometrin stämmer.</li>
-        <li>Bekräfta läget och kapa sist.</li>
+        <li>Bocka på full längd.</li>
+        <li>Prova mot kopplingarna.</li>
+        <li>Justera och kapa sist.</li>
       </ol>
-      <p class="m1p-note">Lämpligt vid trångt utrymme eller när beräknat M1 är för nära änden för säkert verktyggrepp. Kräver erfarenhet och provmontering.</p>
+      <p class="m1p-note">För vana händer.</p>
     </div>`;
   }
   return '';
@@ -4290,15 +4289,15 @@ function bananaM1PracticalCheck(M1, kapa, alpha_deg, instB) {
   const adjKapaA   = Math.round(kapa + shortfall);
   const { strategy, hMode } = m1PracticalState;
 
-  const compactText = `⚠ M1 = ${Math.round(M1)} mm → justerat till ${M1_MIN} mm (+${shortfall} mm kaplängd)`;
+  const compactText = `⚠ Märket är för nära änden. Använd ${M1_MIN} mm i stället.`;
   const { detailOpen } = m1PracticalState;
   const detailDisplay  = detailOpen ? 'block' : 'none';
-  const toggleLabel    = detailOpen ? 'Dölj detaljer ▲' : 'Visa detaljer ▼';
+  const toggleLabel    = detailOpen ? 'Dölj ▲' : 'Visa ▼';
 
   // ── Detail panel content ──────────────────────────────────────────────
   const quickFix = `
     <div class="m1p-suggestion">
-      <div class="m1p-suggestion-label">Rekommenderad lösning (lätt att utföra) — visas i resultat</div>
+      <div class="m1p-suggestion-label">Rekommenderad lösning — använd denna</div>
       <div class="m1p-adj-row">
         <span class="m1p-adj-label">M1</span>
         <span class="m1p-adj-val">${M1_MIN} mm</span>
@@ -4311,35 +4310,35 @@ function bananaM1PracticalCheck(M1, kapa, alpha_deg, instB) {
       </div>
     </div>
     <div class="m1p-secondary-block">
-      <div class="m1p-secondary-label">Matematisk lösning (svår att utföra)</div>
+      <div class="m1p-secondary-label">Matematisk lösning</div>
       <div class="m1p-secondary-row">
         <span>M1 = ${Math.round(M1)} mm</span>
         <span>Kaplängd = ${Math.round(kapa)} mm</span>
       </div>
-      <p class="m1p-note">Det finns tillräcklig längd i röret, men verktyget får sämre grepp vilket gör bockningen svår att utföra exakt.</p>
+      <p class="m1p-note">Fungerar sämre i verktyget.</p>
     </div>`;
 
   // ── H-connection mode — always visible (both modes) ──────────────────
   const hmodeResult = hMode ? `
     <div class="m1p-hmode-result">
       <div class="m1p-adj-row">
-        <span class="m1p-adj-label">M1 (delat)</span>
+        <span class="m1p-adj-label">Märke</span>
         <span class="m1p-adj-val">${M1_MIN} mm</span>
-        <span class="m1p-adj-note">Samma bockningsmärke för båda rören</span>
+        <span class="m1p-adj-note">Båda böjarna</span>
       </div>
       <div class="m1p-adj-row">
-        <span class="m1p-adj-label">Kaplängd ×2</span>
+        <span class="m1p-adj-label">Kapa</span>
         <span class="m1p-adj-val">${adjKapaA} mm</span>
-        <span class="m1p-adj-note">Kapa båda rören lika</span>
+        <span class="m1p-adj-note">Per rör</span>
       </div>
-      <p class="m1p-note">Konsekvent arbetsflöde — ett märke, två identiska rör. Böjvinkel och H-stigning oförändrade.</p>
+      <p class="m1p-note">Samma märke på båda.</p>
     </div>` : '';
 
   const hmodeSection = `
     <div class="m1p-hmode-section">
-      <p class="m1p-hmode-prompt">Detta kan vara ett <strong>H-styckeläge</strong> — vill du låsa M1 = ${M1_MIN} mm för båda böjarna?</p>
+      <p class="m1p-hmode-prompt">Lås märket till <strong>${M1_MIN} mm</strong> på båda?</p>
       <button type="button" class="m1p-hmode-btn${hMode ? ' active' : ''}" onclick="m1PracticalToggleHMode()">
-        ${hMode ? '✓ H-styckeläge aktivt — M1 = ' + M1_MIN + ' mm låst för båda böjarna' : '⊕ Aktivera H-styckeläge — lås M1 för båda böjarna'}
+        ${hMode ? '✓ H-styckeläge aktivt — märke låst' : '⊕ Aktivera H-styckeläge'}
       </button>
       ${hmodeResult}
     </div>`;
@@ -4347,9 +4346,9 @@ function bananaM1PracticalCheck(M1, kapa, alpha_deg, instB) {
   // ── Advanced: strategies B and C ─────────────────────────────────────
   const advancedExtra = `
     <div class="banana-advanced-only">
-      <div class="m1p-strat-label" style="margin-top:12px">Fler alternativ:</div>
+      <div class="m1p-strat-label" style="margin-top:12px">Andra val:</div>
       <div class="m1p-strat-tabs">
-        <button type="button" class="m1p-tab${strategy === 'B' ? ' active' : ''}" onclick="m1PracticalSelect('B')">B — Eget M1</button>
+        <button type="button" class="m1p-tab${strategy === 'B' ? ' active' : ''}" onclick="m1PracticalSelect('B')">B — Eget mått</button>
         <button type="button" class="m1p-tab${strategy === 'C' ? ' active' : ''}" onclick="m1PracticalSelect('C')">C — Frimontage</button>
       </div>
       ${(strategy === 'B' || strategy === 'C') ? m1PracticalRenderStrategy() : ''}
@@ -4604,11 +4603,10 @@ function calculate(forceShow = false) {
     ? (_wH > _wT ? 'bort från vägg (H-stycke längre ut)' : 'mot vägg (H-stycke närmre)')
     : 'se diagram';
   const steps = [
-    `Kapa röret till <em>${Math.round(dispKapa)} mm</em>`,
-    `Märk M1 = <em>${Math.round(dispM1)} mm</em> från överkant (H-stycke-sidan)`,
-    `Böjriktning: <em>${bendDirText}</em>`,
-    `Böj till <em>${springbackAngle}°</em> vid M1 — fjädring ger ~${fmt(alpha_deg,1)}° efter release`,
-    `Stick in <em>${Math.round(instA)} mm</em> i T-koppling och <em>${Math.round(instB)} mm</em> i H-stycke`,
+    `<strong>Steg 1 – Märk upp röret</strong><br>CUT = <em>${Math.round(dispKapa)} mm</em>.<br>Bockningsmärke (M1) = <em>${Math.round(dispM1)} mm</em> från CUT. Bockningsmärket visar var böjen startar.`,
+    `<strong>Steg 2 – Placera i bocknyckeln</strong><br>Lägg bockningsmärket på <em>0-mark</em>.<br>Lång sida vänster, kort sida höger.<br>Lite rör före märket ger bättre grepp.`,
+    `<strong>Steg 3 – Bocka</strong><br>Bocka till <em>${springbackAngle}°</em>.<br>Efter fjädring landar röret på cirka <em>${fmt(alpha_deg,1)}°</em>.`,
+    `<strong>Steg 4 – Kapa</strong><br>Kapa röret till <em>${Math.round(dispKapa)} mm</em>.`,
   ];
 
   document.getElementById('workflow-steps').innerHTML = steps.map((s, i) =>
@@ -4637,13 +4635,13 @@ function calculate(forceShow = false) {
       if (bscNote) {
         const workflowDecision = bananaWorkflowDecision(rawM1, rawKapa, bendTool);
         if (adjDelta > 0) {
-          bscNote.textContent = `M1 justerat till ${dispM1} mm (+${adjDelta} mm) för praktisk hantbarhet. Bocka på full längd — kapa till ${Math.round(dispKapa)} mm efter bockning. Det finns tillräcklig längd i röret, men verktyget får sämre grepp vid det matematiska M1-värdet (${Math.round(rawM1)} mm) vilket gör bockningen svår att utföra exakt.`;
+          bscNote.textContent = `Märk bockningsmärket ${dispM1} mm från CUT. Lägg märket på 0-strecket, bocka först och kapa sedan till ${Math.round(dispKapa)} mm. Det matematiska märket (${Math.round(rawM1)} mm) ger sämre grepp i verktyget.`;
         } else if (!workflowDecision.canCutFirst) {
-          bscNote.textContent = `Bocka först på full längd. Placera M1 (${Math.round(dispM1)} mm) från framtida kaplinje. Kapa till ${Math.round(dispKapa)} mm efter bockning.`;
+          bscNote.textContent = `Märk bockningsmärket ${Math.round(dispM1)} mm från CUT. Lägg märket på 0-strecket, bocka och kapa sedan till ${Math.round(dispKapa)} mm.`;
         } else {
           bscNote.textContent = autoM1Applied
-            ? 'M1 justerades från höjderna för att matcha vald vinkel. Mät alltid från framtida kaplinje.'
-            : 'Mät alltid M1 från framtida kaplinje.';
+            ? 'Bockningsmärket uppdaterades från höjderna. Mät alltid från framtida kaplinje.'
+            : 'Mät alltid bockningsmärket från framtida kaplinje.';
         }
         if (!sessionStorage.getItem('banana_simple_tip')) sessionStorage.setItem('banana_simple_tip', '1');
       }
