@@ -6796,11 +6796,60 @@ function trDraw3D(s1, s2, s3, s4, gap, wallgap, clr, M1, M2, M3) {
 // ── Auto-calculate on load ────────────────────────────────────────────────
 // ── FROMAX GUIDE v0.5.9 ─────────────────────────────────────────────────────
 
+/* ══ FROMAX NO.55 CORE MODEL ══════════════════════════════════════════════════
+
+  We are modeling a manual tube bender (Fromax No.55).
+  
+  There are TWO independent controls that affect the bend result:
+  
+  1. Bend angle (degrees)
+     - Controlled by the degree scale
+     - Determines how much the pipe is bent
+  
+  2. Bend start position (M1 alignment)
+     - Controlled by alignment marks (0°, 1st, 2nd, 3rd)
+     - Determines where along the pipe the bend begins
+  
+  Result geometry depends on BOTH:
+    result = f(angle, alignment_mode)
+  
+  ─ ALIGNMENT POINT ─
+  The 0° mark is located at the top of the bending die (tangent point where bend starts).
+  M1 must align exactly here for correct geometry.
+  
+  ─ ALIGNMENT MODES ─
+  alignment_mode defines how M1 is placed:
+    - "exact": M1 at 0° mark (mathematically correct)
+    - "mark_1": M1 at first mark after 0° (shifts bend start forward)
+    - "mark_2": further shift
+    - "mark_3": maximum shift
+  
+  Changing alignment_mode does NOT change bend angle.
+  It shifts the effective bend start position, which changes resulting geometry.
+  More shift → more offset / deeper bend result.
+  
+  ─ CLAMP CONSTRAINT ─
+  clamp_offset = 40 mm (Fromax requirement)
+  
+  IF pipe_before_M1 < clamp_offset:
+    bending after cutting is not possible
+    → must bend first, then cut
+  
+  ─ WORKFLOW ─
+  final_length is only valid AFTER bending.
+  
+  IF workflow == "bend_first":
+    - bend on full pipe
+    - THEN cut to final_length
+
+═════════════════════════════════════════════════════════════════════════════ */
+
 const FG = {
   step: 1,       // 1–3
   angle: 34,     // synced from calculator
   side: 'left',  // 'left' | 'right'
   mode: 'simple',
+  alignment: 'exact',  // 'exact' | 'mark_1' | 'mark_2' | 'mark_3'
   animFrame: null,
   animEased: 1,
   // Values read from the calculator after each calculate() call
@@ -7033,6 +7082,8 @@ function fgDrawStep1(ctx, W, H) {
     ctx.lineWidth = i === 0 ? 2.2 : 1.2; ctx.stroke();
   });
   fgLabel(ctx, pivotX + flip*22, pipeY - 13, '1:a streck = 0°', '#8aaa80', 8);
+  fgLabel(ctx, pivotX + flip*38, pipeY - 13, '2:a (offset)', '#7a9a70', 7);
+  fgLabel(ctx, pivotX + flip*54, pipeY - 13, '3:e (max)', '#6a8a60', 7);
 
   // ── Pipe ────────────────────────────────────────────────────────────────
   ctx.beginPath();
@@ -7061,7 +7112,7 @@ function fgDrawStep1(ctx, W, H) {
   const m1Label = useM1 !== null ? 'M1 = ' + Math.round(useM1) + ' mm' : 'M1 här';
   fgLabel(ctx, pivotX + 6, pipeY - 40, m1Label, '#5fcf80', 10);
 
-  // ── 0-punkt — dominant referens ──────────────────────────────────────────
+  // ── 0-punkt — dominant referens (TANGENT POINT WHERE BEND STARTS) ──────────
   // Glow ring at 0-mark intersection with gradskiva top
   const zeroY = formerCY - formerR;
   ctx.save();
@@ -7073,8 +7124,9 @@ function fgDrawStep1(ctx, W, H) {
   ctx.beginPath();
   ctx.arc(pivotX, zeroY, 7, 0, Math.PI * 2);
   ctx.strokeStyle = '#e8a020'; ctx.lineWidth = 2.5; ctx.stroke();
-  // "REFERENS" label
-  fgLabel(ctx, pivotX + 13, zeroY + 4, 'REFERENS', '#e8a020', 8);
+  // Extended label: explain 0° is the bend START point
+  fgLabel(ctx, pivotX + 13, zeroY + 4, 'BÖJSTART (0°)', '#e8a020', 8);
+  fgLabel(ctx, pivotX + 13, zeroY + 15, 'M1 här för rätt geometri', '#c8a820', 7);
 
   // ── "Bocka först" warning ─────────────────────────────────────────────────
   if (FG.calc.bendFirst) {
@@ -7359,10 +7411,12 @@ function fgUpdateDesc() {
   const m1Str   = FG.calc.done && FG.calc.M1   !== null ? '<strong>' + Math.round(FG.calc.M1)   + ' mm</strong>' : 'M1-värdet';
   const kapaStr = FG.calc.done && FG.calc.kapa !== null ? '<strong>' + Math.round(FG.calc.kapa) + ' mm</strong>' : '—';
 
-  let step1 = `<strong>Placera M1-markeringen mot 0-strecket (REFERENS) på nyckeln.</strong> `
-    + `Markeringen visar var böjen <em>startar</em> — inte mitten av röret. `
+  let step1 = `<strong>Placera M1-markeringen mot 0-strecket på böjformaren.</strong> `
+    + `0-strecket är den exakta punkt där böjen börjar (tangent-punkt). `
+    + `M1 måste ligga exakt här för rätt geometri. `
+    + `Du kan justera med alternativerstreck (1:a, 2:a, 3:e mark) för att ändra böjstartposition — detta påverkar resultatgeometrin. `
     + `Lång sida till <span class="fg-warn">${side}</span> — kort sida till ${other}. `
-    + `Klonen håller röret mot formaren. `
+    + `Klonen kräver minst ~40mm rör före M1 för att få grepp. `
     + `<span class="fg-warn">OBS: gradskivan sitter under röret — inte ovan.</span> `
     + `Ingen rotation behövs för denna böj.`;
   if (FG.calc.bendFirst)
