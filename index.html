@@ -1349,7 +1349,7 @@
       <button type="button" class="bm-btn active" data-bmode="simple" onclick="setBananaMode('simple')">Enkelt</button>
       <button type="button" class="bm-btn" data-bmode="advanced" onclick="setBananaMode('advanced')">Avancerat</button>
     </div>
-    <div class="ref-strip" id="banana-ref-strip-input"><strong>← 0 mm — H-styckets ände (överkant)</strong></div>
+    <div class="ref-strip" id="banana-ref-strip-input"><strong>← 0 mm — framtida kaplinje</strong></div>
     <div id="banana-ref-note" class="hint-warn"></div>
     <div class="panel-title">Indata — Bananböj (enkel böj)</div>
 
@@ -1457,8 +1457,8 @@
     <div class="input-grid-3">
       <div class="field">
         <label for="m1val">M1 — Bockningsmärke A</label>
-        <input type="number" id="m1val" value="50" min="1" step="1" oninput="bananaClampCheck()" title="M1 från H-stycke-änden i millimeter">
-        <div class="hint">Från <strong>H-stycke-änden</strong> (överkant) [mm]</div>
+        <input type="number" id="m1val" value="50" min="1" step="1" oninput="bananaClampCheck()" title="M1 från framtida kaplinje i millimeter">
+        <div class="hint">Från <strong>framtida kaplinje</strong> [mm]</div>
         <button type="button" class="banana-mini-btn" onclick="bananaAutoFillM1()">Autofyll M1 från höjder</button>
         <div id="banana-m1-auto-hint" class="hint"></div>
         <div id="banana-m1-hint" class="hint-warn"></div>
@@ -1502,7 +1502,7 @@
 
     <div id="banana-simple-card" class="banana-simple-card banana-simple-only">
       <div class="bsc-row"><span class="bsc-label">Kapa röret till</span><span class="bsc-val" id="bsc-kapa">—</span><span class="bsc-unit">mm</span></div>
-      <div class="bsc-row"><span class="bsc-label">Märk M1 från H-stycke-änden</span><span class="bsc-val" id="bsc-m1">—</span><span class="bsc-unit">mm</span></div>
+      <div class="bsc-row"><span class="bsc-label">Märk M1 från framtida kaplinje</span><span class="bsc-val" id="bsc-m1">—</span><span class="bsc-unit">mm</span></div>
       <div class="bsc-row bsc-angle"><span class="bsc-label">Böj till</span><span class="bsc-val" id="bsc-angle">—</span><span class="bsc-unit">grader</span></div>
       <div id="bsc-note" class="hint"></div>
     </div>
@@ -1516,7 +1516,7 @@
       <div class="kapa-label">// Kapa röret till</div>
       <div class="kapa-value" id="kapa-value">—</div>
       <div class="kapa-unit">mm</div>
-      <div id="banana-kapa-sublabel" class="hint">Kapa här (0 mm – H-stycke)</div>
+      <div id="banana-kapa-sublabel" class="hint">Kapa här efter bockning (slutlängd)</div>
       <div class="kapa-breakdown">
         <div class="kapa-row">
           <span class="kd-label">Rå längd (M1 + L + instA)</span>
@@ -1608,7 +1608,7 @@
         <div class="step">
           <div class="step-num">3</div>
           <div class="step-body">
-            <div class="step-formula">M1 = bockningsmärke (från H-stycke-änden / överkant)</div>
+            <div class="step-formula">M1 = bockningsmärke (från framtida kaplinje)</div>
             <div class="step-result" id="f3">—</div>
           </div>
         </div>
@@ -2648,41 +2648,25 @@ function geCheckClampLength(segLength, pipeSize) {
 // Implements two bending workflows: Calculated (precise, measured) vs Practical (fit-and-mark)
 
 function bananaWorkflowDecision(m1, finalLength, bendTool = 'fromax') {
-  const clampOffset = bendTool === 'fromax' ? 40 : (12 * 2); // 40mm for Fromax, else 2×diameter
-  
-  const pipeBeforeM1 = m1; // distance from pipe end to M1
-  
-  // Physical constraint check
-  const canCutFirst = pipeBeforeM1 >= clampOffset;
-  
-  // Workflow choice
-  const workflow = canCutFirst ? 'cut_first' : 'bend_first';
-  
-  // Waste estimation (for bend_first workflow)
-  let minimalRequiredLength = m1 + clampOffset;
-  let wasteEstimate = minimalRequiredLength - finalLength;
-  if (wasteEstimate < 0) wasteEstimate = 0;
-  
-  // Recommended method
-  let recommendedMethod = 'calculated';
-  let explanation = '';
-  
-  if (canCutFirst) {
-    explanation = `Streng nog för clamp-grepp (${Math.round(pipeBeforeM1)}mm ≥ ${clampOffset}mm). ` +
-                  `Kapa först till ${Math.round(finalLength)}mm, bocka sedan vid M1=${Math.round(m1)}mm.`;
-  } else {
-    explanation = `Inte streng nog före M1 för cut-first (${Math.round(pipeBeforeM1)}mm < ${clampOffset}mm). ` +
-                  `Bocka först på full längd, kapa sen till ${Math.round(finalLength)}mm. ` +
-                  `Minsta längd under bockning: ~${Math.round(minimalRequiredLength)}mm (spill: ~${Math.round(wasteEstimate)}mm).`;
-    recommendedMethod = 'practical'; // fallback to practical if geometric constraints fail
-  }
-  
+  const clampOffset = bendTool === 'fromax' ? 40 : (12 * 2);
+  const workflow = 'bend_first';
+  const canCutFirst = false;
+  const pipeBeforeM1 = m1;
+  const temporaryExtra = 0;
+  const minimalRequiredLength = finalLength;
+  const temporaryLength = finalLength;
+  const wasteEstimate = 0;
+  const recommendedMethod = 'practical';
+  const explanation = `Bocka först på full längd. Placera M1 (${Math.round(m1)} mm) från framtida kaplinje. Kapa till ${Math.round(finalLength)} mm efter bockning.`;
+
   return {
     workflow,
     canCutFirst,
     clampOffset,
     pipeBeforeM1,
+    temporaryExtra,
     minimalRequiredLength,
+    temporaryLength,
     wasteEstimate,
     recommendedMethod,
     explanation,
@@ -4022,8 +4006,8 @@ function bananaAutoFillM1(options = {}) {
   const roundedM1 = Math.max(1, Math.round(m1));
   document.getElementById('m1val').value = roundedM1;
   setHint(auto
-    ? `M1 autoberäknad: ${roundedM1} mm (från H-stycke).`
-    : `Autofylld M1: ${roundedM1} mm (från H-stycke).`);
+    ? `M1 autoberäknad: ${roundedM1} mm (från framtida kaplinje).`
+    : `Autofylld M1: ${roundedM1} mm (från framtida kaplinje).`);
   bananaClampCheck();
   if (hasCalculatedMain) calculate();
 }
@@ -4121,21 +4105,8 @@ function showError(msg) {
 
 // ── Bananböj field warnings ───────────────────────────────────────────────
 function bananaClampCheck() {
-  const M1    = parseFloat(document.getElementById('m1val').value) || 0;
-  const instB = parseFloat(document.getElementById('instickB').value) || 0;
-  
   const hintEl = document.getElementById('banana-m1-hint');
   if (!hintEl) return;
-  
-  // Use workflow decision system
-  const decision = bananaWorkflowDecision(M1 - instB, M1, bendTool);
-  
-  if (!decision.canCutFirst) {
-    hintEl.textContent = `Arbetsflöde: bocka först. ${decision.explanation}`;
-    hintEl.classList.add('visible');
-    return;
-  }
-  
   hintEl.classList.remove('visible');
 }
 
@@ -4310,7 +4281,7 @@ function calculate(forceShow = false) {
   let rows = '';
   rows += `<tr><td>Rör att kapa</td><td>${Math.round(kapa)} mm</td><td>Rörkniv/kapmaskin</td></tr>`;
   rows += `<tr><td>${bdLabel}</td><td>−${Math.round(bendDeduction)} mm ${bdBadgeHtml}</td><td>Ingår i kapa</td></tr>`;
-  rows += `<tr><td>M1 — Bockningsmärke</td><td>${Math.round(M1)} mm</td><td>Böj till ${springbackAngle}° (fjädring +${springback}°) — mäts från H-stycke-änden (överkant)</td></tr>`;
+  rows += `<tr><td>M1 — Bockningsmärke</td><td>${Math.round(M1)} mm</td><td>Böj till ${springbackAngle}° (fjädring +${springback}°) — mäts från framtida kaplinje</td></tr>`;
   rows += `<tr><td>Instick A (T-koppling)</td><td>${Math.round(instA)} mm</td><td>Underkant in i T-koppling (diagonalt)</td></tr>`;
   rows += `<tr><td>Instick B (H-stycke)</td><td>${Math.round(instB)} mm</td><td>Överkant in i H-stycke (rakt)</td></tr>`;
   rows += `<tr><td>T-koppling bygger</td><td>${Math.round(tBygg)} mm</td><td>Stam cc → grenrörets mun (ingår i beräkning)</td></tr>`;
@@ -4324,9 +4295,9 @@ function calculate(forceShow = false) {
       document.getElementById('bsc-angle').textContent = Math.round(alpha_deg);
       const bscNote = document.getElementById('bsc-note');
       if (bscNote) {
-        const workflowDecision = bananaWorkflowDecision(freeBefore, kapa, bendTool);
+        const workflowDecision = bananaWorkflowDecision(M1, kapa, bendTool);
         if (!workflowDecision.canCutFirst) {
-          bscNote.textContent = `Bocka på full längd först. Kapa till ${Math.round(kapa)} mm efter böjning. (Spill: ~${Math.round(workflowDecision.wasteEstimate)}mm)`;
+          bscNote.textContent = `Bocka först på full längd. Placera M1 (${Math.round(M1)} mm) från framtida kaplinje. Kapa till ${Math.round(kapa)} mm efter bockning.`;
         } else {
           bscNote.textContent = autoM1Applied
             ? 'M1 justerades från höjderna för att matcha vald vinkel. Mät alltid från H-stycket.'
@@ -4340,17 +4311,11 @@ function calculate(forceShow = false) {
     }
   }
 
-  // ── Stage 4: result-zone warnings ────────────────────────────────────
-  // Clamp lead-in (result zone) — use workflow decision system
+  // ── Stage 4: no clamp warning in bend-first workflow ─────────────────
   const clampLeadEl = document.getElementById('banana-clamp-lead-result');
   if (clampLeadEl) {
-    const workflowDecision = bananaWorkflowDecision(freeBefore, kapa, bendTool);
-    if (!workflowDecision.canCutFirst) {
-      clampLeadEl.textContent = `${workflowDecision.explanation} (spill: ~${Math.round(workflowDecision.wasteEstimate)}mm)`;
-      clampLeadEl.classList.add('visible');
-    } else {
-      clampLeadEl.classList.remove('visible');
-    }
+    clampLeadEl.textContent = '';
+    clampLeadEl.classList.remove('visible');
   }
 
   // Estimated badge (15mm Fromax empirical)
@@ -4375,14 +4340,14 @@ function calculate(forceShow = false) {
   // Ref-strip result
   const refStripResult = document.getElementById('banana-ref-strip-result');
   if (refStripResult) {
-    refStripResult.innerHTML = `<strong>← 0 mm — H-styckets ände (överkant)</strong> &nbsp;·&nbsp; M1 = ${Math.round(M1)} mm`;
+    refStripResult.innerHTML = `<strong>← 0 mm — framtida kaplinje</strong> &nbsp;·&nbsp; M1 = ${Math.round(M1)} mm`;
   }
 
   // Suspicious M1
   const suspEl = document.getElementById('banana-m1-suspicious');
   if (suspEl) {
     if (M1 > kapa / 2) {
-      suspEl.textContent = 'Mätte du från T-koppling? M1 ska tas från H-stycke.';
+      suspEl.textContent = 'M1 ska tas från framtida kaplinje — inte från nuvarande rörände.';
       suspEl.classList.add('visible');
     } else {
       suspEl.classList.remove('visible');
@@ -6926,7 +6891,7 @@ function fgSyncFromCalc() {
   const parsedM1    = m1El    ? parseFloat(m1El.textContent)    : null;
   const parsedKapa  = kapaEl  ? parseFloat(kapaEl.textContent)  : null;
   const parsedD     = djupEl  ? (parseFloat(djupEl.value) || null) : null;
-  const bendFirst   = clampEl ? clampEl.classList.contains('visible') : false;
+  const bendFirst   = true;
   const springback  = sbEl    ? (parseFloat(sbEl.value) || 0)         : 0;
 
   FG.calc.done        = !isNaN(parsedAngle) && parsedAngle > 0;
@@ -6937,6 +6902,9 @@ function fgSyncFromCalc() {
   FG.calc.kapa        = FG.calc.done ? parsedKapa               : null;
   FG.calc.D           = parsedD;
   FG.calc.bendFirst   = bendFirst;
+  FG.calc.workflow    = (FG.calc.done && FG.calc.M1 !== null && FG.calc.kapa !== null)
+    ? bananaWorkflowDecision(FG.calc.M1, FG.calc.kapa, bendTool)
+    : null;
 
   // Sync angle button to nominal (design) angle
   if (FG.calc.angle !== null) {
@@ -7051,6 +7019,7 @@ function fgDrawStep1(ctx, W, H) {
   const formerR  = 44;
   const useM1    = FG.calc.done ? FG.calc.M1   : null;
   const useKapa  = FG.calc.done ? FG.calc.kapa : null;
+  const workflow = FG.calc.workflow;
 
   // ── Bend former (gradskiva) ──────────────────────────────────────────────
   ctx.beginPath();
@@ -7172,6 +7141,24 @@ function fgDrawStep1(ctx, W, H) {
   fgArrow(ctx, pivotX, pipeY - 38, pivotX, pipeY - 22, '#5fcf80');
   const m1Label = useM1 !== null ? 'M1 = ' + Math.round(useM1) + ' mm' : 'M1 här';
   fgLabel(ctx, pivotX + 6, pipeY - 40, m1Label, '#5fcf80', 10);
+
+  if (workflow && workflow.workflow === 'bend_first' && useKapa !== null && useM1 !== null) {
+    const cutLineX = pivotX - flip * useM1;
+    ctx.save();
+    ctx.setLineDash([4,3]);
+    ctx.beginPath();
+    ctx.moveTo(cutLineX, pipeY - 24); ctx.lineTo(cutLineX, pipeY + 24);
+    ctx.strokeStyle = '#5fcf80'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.restore();
+    fgArrow(ctx, cutLineX, pipeY + 38, cutLineX, pipeY + 24, '#5fcf80');
+    fgLabel(ctx, cutLineX, pipeY + 50, 'Kapa här efter böj', '#5fcf80', 8, 'center');
+    ctx.save(); ctx.setLineDash([2,3]);
+    ctx.beginPath();
+    ctx.moveTo(cutLineX, pipeY + 10); ctx.lineTo(pivotX, pipeY + 10);
+    ctx.strokeStyle = '#5a6a55'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.restore();
+    fgLabel(ctx, (cutLineX + pivotX) / 2, pipeY + 22, 'M1 mäts från framtida kaplinje', '#5a6a55', 8, 'center');
+  }
 
   // ── 0-punkt — dominant referens (TANGENT POINT WHERE BEND STARTS) ──────────
   // Glow ring at 0-mark intersection with gradskiva top
@@ -7480,7 +7467,7 @@ function fgUpdateDesc() {
     + `Klonen kräver minst ~40mm rör före M1 för att få grepp. `
     + `Ingen rotation behövs för denna böj.`;
   if (FG.calc.bendFirst)
-    step1 += ` <span class="fg-warn">Bocka på hel längd — kapa EFTER bockning.</span>`;
+    step1 += ` <span class="fg-warn">Bocka på hel längd. M1 mäts från den framtida kaplinjen, inte från dagens rörände. Kapa EFTER bockning.</span>`;
   else if (FG.calc.done)
     step1 += ` Kapa till ${kapaStr}.`;
 
@@ -7494,10 +7481,13 @@ function fgUpdateDesc() {
       if (sb > 0)
         s += ` — röret fjädrar tillbaka <strong>${sb}°</strong> och landar på <strong>${angle}°</strong>`;
       s += `. Avläs gradskalan vid pivotpunkten.`;
-      if (FG.calc.done) s += ` M1 = ${m1Str} från H-styckets ände.`;
+      if (FG.calc.done) s += FG.calc.bendFirst
+        ? ` M1 = ${m1Str} från framtida kaplinje.`
+        : ` M1 = ${m1Str} från H-styckets ände.`;
       return s;
     })(),
-    `Klar — bananböj ${angle}°. M1 = ${m1Str} mäts från H-styckets ände (0 mm). `
+    `Klar — bananböj ${angle}°. M1 = ${m1Str} `
+    + (FG.calc.bendFirst ? `mäts från framtida kaplinje. ` : `mäts från H-styckets ände (0 mm). `)
     + (FG.calc.done ? `Kaplängd = ${kapaStr}.` : '')
     + ` Verifiera sidmåttet i appen.`,
   ];
