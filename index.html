@@ -1337,12 +1337,12 @@
       <p>Röret ska gå diagonalt från en T-koppling (nere) till ett H-stycke (uppe). Du gör en böj — appen räknar ut kaplängd och märkposition åt dig.</p>
       <ul>
         <li><strong>Sidmått:</strong> Hur långt åt sidan röret förflyttas, mätt centrum till centrum</li>
-        <li><strong>Bockningmärke M1:</strong> Avstånd från H-styckets ände till böjpunkten — mät alltid från H-stycke-sidan</li>
+        <li><strong>Bockningsmärke M1:</strong> Avstånd från framtida kaplinje till böjpunkten</li>
         <li><strong>Instick:</strong> Hur långt röret sticks in i T-koppling respektive H-stycke</li>
         <li><strong>Montagehöjder:</strong> Hur högt respektive koppling sitter (mäts från golv eller referens)</li>
         <li><strong>Böjvinkel:</strong> Välj förval eller låt appen räkna ut den automatiskt</li>
       </ul>
-      <div class="intro-tip">💡 Mät M1 från <strong>H-stycket</strong> (övre kopplingen).<br>👉 Börja alltså mäta från den sida där röret ska sluta. Mäter du från T-sidan hamnar böjen fel och röret passar inte.</div>
+      <div class="intro-tip">💡 Mät M1 från <strong>framtida kaplinje</strong>.<br>👉 Mäter du från nuvarande rörände hamnar böjen fel och röret passar inte.</div>
       <div class="intro-extra">⚙ Så gör du: 1) Fyll i sidmått och höjder. 2) Ange M1 och instick. 3) Klicka Beräkna — appen visar kaplängd och böjmärke.</div>
     </div>
     <div class="banana-mode-toggle" id="banana-mode-toggle">
@@ -4297,11 +4297,11 @@ function calculate(forceShow = false) {
       if (bscNote) {
         const workflowDecision = bananaWorkflowDecision(M1, kapa, bendTool);
         if (!workflowDecision.canCutFirst) {
-          bscNote.textContent = `Bocka först på full längd. Placera M1 (${Math.round(M1)} mm) från framtida kaplinje. Kapa till ${Math.round(kapa)} mm efter bockning.`;
+          bscNote.textContent = `Bocka först på full längd. Placera M1 (${Math.round(M1)} mm) från framtida kaplinje. Kapa till ${Math.round(kapa)} mm efter bockning. M1 ligger nära slutet, men eftersom röret inte kapas före bockning finns alltid tillräcklig längd för verktyget.`;
         } else {
           bscNote.textContent = autoM1Applied
-            ? 'M1 justerades från höjderna för att matcha vald vinkel. Mät alltid från H-stycket.'
-            : 'Mät alltid M1 från H-stycket - inte från T-kopplingen.';
+            ? 'M1 justerades från höjderna för att matcha vald vinkel. Mät alltid från framtida kaplinje.'
+            : 'Mät alltid M1 från framtida kaplinje.';
         }
         if (!sessionStorage.getItem('banana_simple_tip')) sessionStorage.setItem('banana_simple_tip', '1');
       }
@@ -4340,7 +4340,7 @@ function calculate(forceShow = false) {
   // Ref-strip result
   const refStripResult = document.getElementById('banana-ref-strip-result');
   if (refStripResult) {
-    refStripResult.innerHTML = `<strong>← 0 mm — framtida kaplinje</strong> &nbsp;·&nbsp; M1 = ${Math.round(M1)} mm`;
+    refStripResult.innerHTML = `<strong>CUT (0 mm)</strong> ── ${Math.round(M1)} mm ── <strong>M1</strong>`;
   }
 
   // Suspicious M1
@@ -7464,7 +7464,7 @@ function fgUpdateDesc() {
     + `M1 måste ligga exakt här för rätt geometri. `
     + `Du kan justera med alternativerstreck (1:a, 2:a, 3:e mark) för att ändra böjstartposition — detta påverkar resultatgeometrin. `
     + `Lång sida till <span class="fg-warn">${side}</span> — kort sida till ${other}. `
-    + `Klonen kräver minst ~40mm rör före M1 för att få grepp. `
+    + `Klonen kräver ~40 mm före M1 vid kap-först-metod; i detta läge bockas röret före kapning och kravet uppfylls automatiskt. `
     + `Ingen rotation behövs för denna böj.`;
   if (FG.calc.bendFirst)
     step1 += ` <span class="fg-warn">Bocka på hel längd. M1 mäts från den framtida kaplinjen, inte från dagens rörände. Kapa EFTER bockning.</span>`;
@@ -7481,13 +7481,11 @@ function fgUpdateDesc() {
       if (sb > 0)
         s += ` — röret fjädrar tillbaka <strong>${sb}°</strong> och landar på <strong>${angle}°</strong>`;
       s += `. Avläs gradskalan vid pivotpunkten.`;
-      if (FG.calc.done) s += FG.calc.bendFirst
-        ? ` M1 = ${m1Str} från framtida kaplinje.`
-        : ` M1 = ${m1Str} från H-styckets ände.`;
+      if (FG.calc.done) s += ` M1 = ${m1Str} från framtida kaplinje.`;
       return s;
     })(),
     `Klar — bananböj ${angle}°. M1 = ${m1Str} `
-    + (FG.calc.bendFirst ? `mäts från framtida kaplinje. ` : `mäts från H-styckets ände (0 mm). `)
+    + `mäts från framtida kaplinje. `
     + (FG.calc.done ? `Kaplängd = ${kapaStr}.` : '')
     + ` Verifiera sidmåttet i appen.`,
   ];
