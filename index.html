@@ -1507,7 +1507,7 @@
     <div class="input-grid-3">
       <div class="field">
         <label for="m1val">M1 — Bockningsmärke A</label>
-        <input type="number" id="m1val" value="50" min="1" step="1" oninput="bananaClampCheck()" title="M1 från framtida kaplinje i millimeter">
+        <input type="number" id="m1val" value="50" min="1" step="1" oninput="bananaOnM1Input()" title="M1 från framtida kaplinje i millimeter">
         <div class="hint">Från <strong>framtida kaplinje</strong> [mm]</div>
         <button type="button" class="banana-mini-btn" onclick="bananaAutoFillM1()">Autofyll M1 från höjder</button>
         <div id="banana-m1-auto-hint" class="hint"></div>
@@ -2737,6 +2737,7 @@ const M1_MIN  = 40; // recommended minimum free pipe before bend mark (mm) — F
 const M1_WARN = 30; // warning threshold below which accuracy is compromised
 
 let bananaHMode = false; // H-styckeläge: locks M1 = M1_MIN regardless of calculation
+let bananaM1ManualOverride = false; // manual M1 keeps bend geometry and applies positional offset
 
 let m1PracticalState = {
   M1: null, kapa: null, alpha: null, instB: null,
@@ -4072,6 +4073,7 @@ function bananaAutoFillM1(options = {}) {
   }
 
   const roundedM1 = Math.max(1, Math.round(m1));
+  bananaM1ManualOverride = false;
   document.getElementById('m1val').value = roundedM1;
   setHint(auto
     ? `M1 autoberäknad: ${roundedM1} mm (från framtida kaplinje).`
@@ -4184,6 +4186,11 @@ function bananaClampCheck() {
   }
 }
 
+function bananaOnM1Input() {
+  bananaM1ManualOverride = true;
+  bananaClampCheck();
+}
+
 function m1PracticalRenderStrategy() {
   const { M1, kapa, strategy, userM1 } = m1PracticalState;
   if (M1 === null || kapa === null) return '';
@@ -4203,6 +4210,7 @@ function m1PracticalRenderStrategy() {
         <span class="m1p-adj-val">${adjKapaA} mm</span>
         <span class="m1p-adj-note">(+${shortfall} mm)</span>
       </div>
+      <p class="m1p-note">Böjen flyttas längs röret (samma geometri).</p>
       <p class="m1p-note">Bocka först. Kapa sist.</p>
     </div>`;
   }
@@ -4308,6 +4316,9 @@ function bananaM1PracticalCheck(M1, kapa, alpha_deg, instB) {
         <span class="m1p-adj-val">${adjKapaA} mm</span>
         <span class="m1p-adj-note">+${shortfall} mm</span>
       </div>
+      <p class="m1p-note"><strong>M1 justerat: ${Math.round(M1)} → ${M1_MIN} mm (+${Math.round(shortfall)} mm)</strong></p>
+      <p class="m1p-note">Böjen flyttas längs röret (samma geometri)</p>
+      <p class="m1p-note">Kapa efter bockning: ${adjKapaA} mm</p>
     </div>
     <div class="m1p-secondary-block">
       <div class="m1p-secondary-label">Matematisk lösning</div>
@@ -4462,6 +4473,9 @@ function calculate(forceShow = false) {
   let M1 = m1val;
   let freeBefore = M1 - instB;   // free straight pipe from H face to bend mark
   let autoM1Applied = false;
+  const offsetLockActive = bananaHMode || bananaM1ManualOverride || M1 < M1_MIN;
+  let angleAdjustedForM1 = false;
+  const originalLockedAngle = (calcMode === 'vinkel' && lockedAngle !== null) ? lockedAngle : null;
 
   let alpha_deg, alpha_rad, H_diag, L;
 
@@ -4473,21 +4487,30 @@ function calculate(forceShow = false) {
       return;
     }
     if (isNaN(D) || D <= 0) return;
-    alpha_deg = lockedAngle;
-    alpha_rad = alpha_deg * Math.PI / 180;
-    const geo = geParallelOffset(D, alpha_deg);
-    if (geo.L === Infinity) return;
-    L         = geo.L;
-    H_diag    = geo.H;
-    document.getElementById('hojd').value = H_diag.toFixed(1);
+    const shouldAdjustAngleFromM1 = hasHeights && (bananaM1ManualOverride || bananaHMode);
+    if (shouldAdjustAngleFromM1) {
+      const riseOfDiagRaw = H_rise - freeBefore;
+      const riseOfDiag = riseOfDiagRaw > 0 ? riseOfDiagRaw : 0.1;
+      alpha_rad = Math.atan(D / riseOfDiag);
+      alpha_deg = alpha_rad * 180 / Math.PI;
+      H_diag    = riseOfDiag;
+      L         = Math.sqrt(D*D + H_diag*H_diag);
+      angleAdjustedForM1 = true;
+      document.getElementById('hojd').value = H_diag.toFixed(1);
+    } else {
+      alpha_deg = lockedAngle;
+      alpha_rad = alpha_deg * Math.PI / 180;
+      const geo = geParallelOffset(D, alpha_deg);
+      if (geo.L === Infinity) return;
+      L         = geo.L;
+      H_diag    = geo.H;
+      document.getElementById('hojd').value = H_diag.toFixed(1);
+    }
   } else if (hasHeights) {
     // Derive angle from heights + D
     if (isNaN(D) || D <= 0) return;
-    const riseOfDiag = H_rise - freeBefore;   // vertical rise of diagonal section (T side)
-    if (riseOfDiag <= 0) {
-      showError(`M1 (${fmt(M1,0)}mm) − instickB (${fmt(instB,0)}mm) = ${fmt(freeBefore,0)}mm ≥ stigning ${fmt(H_rise,0)}mm. Minska M1.`);
-      return;
-    }
+    const riseOfDiagRaw = H_rise - freeBefore;   // vertical rise of diagonal section (T side)
+    const riseOfDiag = riseOfDiagRaw > 0 ? riseOfDiagRaw : 0.1;
     alpha_rad = Math.atan(D / riseOfDiag);
     alpha_deg = alpha_rad * 180 / Math.PI;
     H_diag    = riseOfDiag;
@@ -4509,7 +4532,15 @@ function calculate(forceShow = false) {
     const riseNeeded = manualFreeBefore + H_diag;
     const deltaRise = H_rise - riseNeeded;
 
-    if (bananaMode === 'simple' && derivedFreeBefore > 0 && Math.abs(deltaRise) >= 2) {
+    if (angleAdjustedForM1) {
+      const transitionText = originalLockedAngle !== null
+        ? `${fmt(originalLockedAngle,1)}° → ${fmt(alpha_deg,1)}°`
+        : `${fmt(alpha_deg,1)}°`;
+      heightCompatEl.textContent = `Vinkel justerad till ${fmt(alpha_deg,1)}° för att passa M1 = ${Math.round(M1)} mm (${transitionText}).`;
+      heightCompatEl.classList.add('visible');
+    }
+
+    if (bananaMode === 'simple' && derivedFreeBefore > 0 && Math.abs(deltaRise) >= 2 && !offsetLockActive && !angleAdjustedForM1) {
       M1 = derivedM1;
       freeBefore = derivedFreeBefore;
       autoM1Applied = true;
@@ -4517,10 +4548,11 @@ function calculate(forceShow = false) {
       if (m1Input) m1Input.value = Math.round(M1);
     }
 
-    if (Math.abs(deltaRise) >= 2) {
+    if (Math.abs(deltaRise) >= 2 && !angleAdjustedForM1) {
       const suggestedM1 = Math.max(1, Math.round(instB + Math.max(0, H_rise - H_diag)));
-      heightCompatEl.textContent =
-        `Måtten går inte ihop i vinkelläge: höjderna ger stigning ${Math.round(H_rise)}mm men vinkel ${Math.round(alpha_deg)}° + M1 ${Math.round(manualM1)}mm kräver ${Math.round(riseNeeded)}mm. Kapa räknas på vinkeln. Testa M1 ≈ ${suggestedM1}mm eller Fri-läge.`;
+      heightCompatEl.textContent = offsetLockActive
+        ? `Info: M1 hanteras som positionsförskjutning. Vinkel ${Math.round(alpha_deg)}° och geometri hålls oförändrade; böjen flyttas längs röret.`
+        : `Info i vinkelläge: höjderna ger stigning ${Math.round(H_rise)}mm men vinkel ${Math.round(alpha_deg)}° + M1 ${Math.round(manualM1)}mm kräver ${Math.round(riseNeeded)}mm. Testa M1 ≈ ${suggestedM1}mm eller Fri-läge.`;
       heightCompatEl.classList.add('visible');
     }
   }
@@ -4546,6 +4578,9 @@ function calculate(forceShow = false) {
     dispKapa = kapa + hmDelta;
   }
 
+  // Display-only helper: equivalent bend mark position measured from pipe start/end.
+  const dispM1FromStart = dispKapa - dispM1;
+
   // ── Update cards ─────────────────────────────────────────────────────
   document.getElementById('r-angle').textContent = Math.round(alpha_deg) + '°';
   document.getElementById('r-slant').textContent = Math.round(L);
@@ -4562,9 +4597,9 @@ function calculate(forceShow = false) {
   if (kapaSubLabel) {
     if (bananaHMode) {
       const hmDelta = M1_MIN - rawM1;
-      kapaSubLabel.textContent = `H-styckeläge aktivt — M1 låst ${M1_MIN} mm (beräknat ${Math.round(rawM1)} mm) · Kapa efter bockning`;
+      kapaSubLabel.textContent = `H-styckeläge: M1 justerat ${Math.round(rawM1)}→${M1_MIN} mm (${hmDelta >= 0 ? '+' : ''}${Math.round(hmDelta)} mm) · Böjen flyttas längs röret (samma geometri) · Kapa efter bockning: ${Math.round(dispKapa)} mm`;
     } else if (adjDelta > 0) {
-      kapaSubLabel.textContent = `Justerat +${adjDelta}mm (M1 ${Math.round(rawM1)}→${dispM1}mm) · Kapa efter bockning`;
+      kapaSubLabel.textContent = `M1 justerat: ${Math.round(rawM1)} → ${Math.round(dispM1)} mm (+${Math.round(adjDelta)} mm) · Böjen flyttas längs röret (samma geometri) · Kapa efter bockning: ${Math.round(dispKapa)} mm`;
     } else {
       kapaSubLabel.textContent = 'Kapa här efter bockning (slutlängd)';
     }
@@ -4619,7 +4654,7 @@ function calculate(forceShow = false) {
   let rows = '';
   rows += `<tr><td>Rör att kapa</td><td>${Math.round(dispKapa)} mm</td><td>Rörkniv/kapmaskin</td></tr>`;
   rows += `<tr><td>${bdLabel}</td><td>−${Math.round(bendDeduction)} mm ${bdBadgeHtml}</td><td>Ingår i kapa</td></tr>`;
-  rows += `<tr><td>M1 — Bockningsmärke</td><td>${Math.round(dispM1)} mm${adjDelta > 0 ? ` <span style="color:#6a7a65;font-size:10px">(mat. ${Math.round(rawM1)}mm)</span>` : ''}</td><td>Böj till ${springbackAngle}° (fjädring +${springback}°) — mäts från framtida kaplinje</td></tr>`;
+  rows += `<tr><td>M1 — Bockningsmärke</td><td><div>${Math.round(dispM1)} mm från kaplinje</div><div style="color:#6a7a65;font-size:10px">(= ${Math.round(dispM1FromStart)} mm från rörände)</div>${adjDelta > 0 ? `<div style="color:#6a7a65;font-size:10px">(mat. ${Math.round(rawM1)}mm)</div>` : ''}</td><td>Böj till ${springbackAngle}° (fjädring +${springback}°) — mäts från framtida kaplinje</td></tr>`;
   rows += `<tr><td>Instick A (T-koppling)</td><td>${Math.round(instA)} mm</td><td>Underkant in i T-koppling (diagonalt)</td></tr>`;
   rows += `<tr><td>Instick B (H-stycke)</td><td>${Math.round(instB)} mm</td><td>Överkant in i H-stycke (rakt)</td></tr>`;
   rows += `<tr><td>T-koppling bygger</td><td>${Math.round(tBygg)} mm</td><td>Stam cc → grenrörets mun (ingår i beräkning)</td></tr>`;
