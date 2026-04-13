@@ -7060,30 +7060,49 @@ function fgDrawStep1(ctx, W, H) {
   ctx.restore();
 
   // ── Klon ────────────────────────────────────────────────────────────────
+  // Klon must be 40mm before 0° mark for proper grip
   const klonW = 22, klonH = 16;
-  const klonX = pivotX - flip * (klonW + 4);
+  const klonX = pivotX - flip * 40;
   ctx.beginPath();
   ctx.roundRect(klonX, pipeY - klonH/2, klonW, klonH, 3);
   ctx.fillStyle = '#232e22'; ctx.strokeStyle = '#6a8060'; ctx.lineWidth = 1.5;
   ctx.fill(); ctx.stroke();
-  fgLabel(ctx, klonX + klonW/2, pipeY - klonH/2 - 5, 'Klon', '#8aaa80', 9, 'center');
+  fgLabel(ctx, klonX + klonW/2, pipeY - klonH/2 - 5, 'Klon (40mm)', '#8aaa80', 8, 'center');
 
-  // ── Tool handle bar ──────────────────────────────────────────────────────
-  const armX1 = pivotX, armX2 = pivotX + flip * 180;
+  // ── Alignment marks block (ABOVE pipe) ───────────────────────────────────
+  // Shows the three reference marks on the Fromax handle
+  // 1st mark is EXACTLY above 0° reference
+  const markBlockY = pipeY - 32;
+  const mark1X = pivotX;              // above 0°
+  const mark2X = pivotX + flip * 16;  // offset
+  const mark3X = pivotX + flip * 32;  // max
+
+  // Block background
   ctx.beginPath();
-  ctx.roundRect(Math.min(armX1,armX2), pipeY - 8, Math.abs(armX2-armX1), 15, 3);
-  ctx.fillStyle = '#1e2820'; ctx.strokeStyle = '#4a5a48'; ctx.lineWidth = 1.5;
+  ctx.roundRect(Math.min(mark1X, mark3X) - flip*8, markBlockY - 12, Math.abs(mark3X - mark1X) + flip*16, 20, 2);
+  ctx.fillStyle = '#1a2620'; ctx.strokeStyle = '#4a6a48'; ctx.lineWidth = 1;
   ctx.fill(); ctx.stroke();
-  [34, 50, 66].forEach((d, i) => {
-    const mx = pivotX + flip * d;
+
+  // Three marks as vertical ticks
+  [
+    {x: mark1X, label: '1:a\n(0°)', color: '#e8a020'},
+    {x: mark2X, label: '2:a\n(offset)', color: '#8aaa80'},
+    {x: mark3X, label: '3:e\n(max)', color: '#6a8a60'},
+  ].forEach(mark => {
     ctx.beginPath();
-    ctx.moveTo(mx, pipeY - 7); ctx.lineTo(mx, pipeY + 6);
-    ctx.strokeStyle = i === 0 ? '#e8a020' : '#8aaa80';
-    ctx.lineWidth = i === 0 ? 2.2 : 1.2; ctx.stroke();
+    ctx.moveTo(mark.x, markBlockY - 12); ctx.lineTo(mark.x, markBlockY + 8);
+    ctx.strokeStyle = mark.color; ctx.lineWidth = 2.2; ctx.stroke();
+    fgLabel(ctx, mark.x, markBlockY + 15, mark.label, mark.color, 7, 'center');
   });
-  fgLabel(ctx, pivotX + flip*22, pipeY - 13, '1:a streck = 0°', '#8aaa80', 8);
-  fgLabel(ctx, pivotX + flip*38, pipeY - 13, '2:a (offset)', '#7a9a70', 7);
-  fgLabel(ctx, pivotX + flip*54, pipeY - 13, '3:e (max)', '#6a8a60', 7);
+
+  // Vertical alignment line from 1:a mark down to 0°
+  ctx.save(); ctx.setLineDash([2,2]);
+  ctx.beginPath();
+  ctx.moveTo(mark1X, markBlockY + 8); ctx.lineTo(mark1X, pipeY - 20);
+  ctx.strokeStyle = '#e8a020'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.restore();
+
+  fgLabel(ctx, pivotX + flip*5, markBlockY - 22, '🞂 Alignment marks', '#8aaa80', 7, flip===1 ? 'left' : 'right');
 
   // ── Pipe ────────────────────────────────────────────────────────────────
   ctx.beginPath();
@@ -7417,7 +7436,6 @@ function fgUpdateDesc() {
     + `Du kan justera med alternativerstreck (1:a, 2:a, 3:e mark) för att ändra böjstartposition — detta påverkar resultatgeometrin. `
     + `Lång sida till <span class="fg-warn">${side}</span> — kort sida till ${other}. `
     + `Klonen kräver minst ~40mm rör före M1 för att få grepp. `
-    + `<span class="fg-warn">OBS: gradskivan sitter under röret — inte ovan.</span> `
     + `Ingen rotation behövs för denna böj.`;
   if (FG.calc.bendFirst)
     step1 += ` <span class="fg-warn">Bocka på hel längd — kapa EFTER bockning.</span>`;
