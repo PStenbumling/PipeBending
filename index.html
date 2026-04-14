@@ -2042,6 +2042,7 @@
           <div id="sb-offset-cc-hint" class="hint">Mät rakt tvärs — inte längs röret. Centerline till centerline (cc).</div>
           <div id="sb-offset-plausibility-hint" class="hint-danger"></div>
           <div id="sb-offset-angle-hint" class="hint-warn"></div>
+          <div id="sb-offset-clr-hint" class="hint-danger"></div>
         </div>
         <div class="field">
           <label for="sb-m1">Rör före M1</label>
@@ -5233,9 +5234,22 @@ function sbCheckFieldWarnings() {
       } else {
         angleEl.classList.remove('visible');
       }
+      const clrMinHintEl = document.getElementById('sb-offset-clr-hint');
+      if (clrMinHintEl) {
+        const Arad = A * Math.PI / 180;
+        const minD = Math.ceil(2 * clr * (1 - Math.cos(Arad)));
+        if (D < minD) {
+          clrMinHintEl.textContent = `Minst ${minD} mm behövs för ${A}° (bockningsradie)`;
+          clrMinHintEl.classList.add('visible');
+        } else {
+          clrMinHintEl.classList.remove('visible');
+        }
+      }
     } else {
       plausEl.classList.remove('visible');
       angleEl.classList.remove('visible');
+      const clrMinHintEl = document.getElementById('sb-offset-clr-hint');
+      if (clrMinHintEl) clrMinHintEl.classList.remove('visible');
     }
   }
 }
@@ -5297,8 +5311,11 @@ function sbAutoFix() {
   const angleEl = document.getElementById('sb-angle');
   const sideEl = document.getElementById('sb-offset');
   const side = parseFloat(sideEl.value) || 0;
+  const clr = parseFloat(document.getElementById('sb-clr').value) || 43;
   const currentAngle = parseFloat(angleEl.value) || 45;
-  const maxAngle = Math.atan(side / 30) * 180 / Math.PI;
+  const maxAngle = side >= 2 * clr
+    ? 90
+    : Math.acos(1 - side / (2 * clr)) * 180 / Math.PI;
   const fallbackAngles = [30, 22.5, 15];
   const suggested = fallbackAngles.find(v => v <= maxAngle && v < currentAngle);
 
@@ -5308,7 +5325,7 @@ function sbAutoFix() {
     sbSetAngle(suggested, btn || null);
   } else {
     const rad = currentAngle * Math.PI / 180;
-    const minSideForAngle = Math.ceil(30 * Math.tan(rad));
+    const minSideForAngle = Math.ceil(2 * clr * (1 - Math.cos(rad)));
     if (side < minSideForAngle) sideEl.value = minSideForAngle;
   }
 
@@ -5393,20 +5410,23 @@ function sbCalculate() {
     }
   }
 
-  // 4b. Geometry feasibility — H < 30 means bends too close together
-  if (H < 30) {
-    const minSideForAngle = Math.ceil(30 * Math.tan(rad));
-    const maxAngle = Math.atan(D / 30) * 180 / Math.PI;
-    const anglePick = [30, 22.5, 15].find(v => v <= maxAngle);
+  // 4b. Geometry feasibility — CLR constraint: inclined section must fit both bend arcs
+  const minLForBend = 2 * clr * Math.tan(rad / 2);
+  if (L < minLForBend) {
+    const minD = Math.ceil(2 * clr * (1 - Math.cos(rad)));
+    sbLastSummary = null;
+    sbUpdateSimpleCard(null);
     showSuggestion('sb-warning',
-      `För lite längd för ${A}° böj.`,
+      `Omöjlig S-böj — bockningsradien tillåter inte ${A}° med ${Math.round(D)} mm sidmått.`,
       [
-        anglePick ? `Minska vinkeln till ${anglePick}°` : 'Minska vinkeln för att få mer plats mellan böjarna',
-        `Eller öka ${sideLabel} till minst ${minSideForAngle} mm`,
-        'Behöver du även byta höjd? Då passar Svanbock-fliken bättre.',
+        `Minsta sidmått för ${A}° med ${clr} mm CLR: ${minD} mm`,
+        `Minska vinkeln, eller öka sidmåttet till minst ${minD} mm`,
+        'Behöver du byta höjd? Svanbock-fliken passar bättre.',
       ]);
     hideSuccess('sb-success');
     sbToggleAutoFix(true);
+    document.getElementById('sbend-results').style.display = 'block';
+    return;
   } else {
     hideSuggestion('sb-warning');
     showSuccess('sb-success', 'Geometrin fungerar - redo att bocka.');
