@@ -552,7 +552,7 @@
   .mb-segments-wrap { margin-bottom: 16px; }
   .mb-seg-header {
     display: grid;
-    grid-template-columns: 90px minmax(120px, 1fr) 100px minmax(180px, 1fr) auto;
+    grid-template-columns: 90px minmax(120px, 1fr) 100px minmax(150px, 1fr) minmax(80px, 1fr) auto;
     gap: 8px;
     font-size: 0.62rem; letter-spacing: 0.12em; color: var(--text-dim);
     text-transform: uppercase; padding: 0 4px 6px;
@@ -560,7 +560,7 @@
   }
   .mb-seg-row {
     display: grid;
-    grid-template-columns: 90px minmax(120px, 1fr) 100px minmax(180px, 1fr) auto;
+    grid-template-columns: 90px minmax(120px, 1fr) 100px minmax(150px, 1fr) minmax(80px, 1fr) auto;
     gap: 8px; align-items: center;
     padding: 6px 4px;
     border-bottom: 1px solid #1a1f1a;
@@ -568,7 +568,7 @@
   }
   .mb-segments-simple .mb-seg-header,
   .mb-segments-simple .mb-seg-row {
-    grid-template-columns: 90px minmax(120px, 1fr) minmax(100px, 1fr) auto;
+    grid-template-columns: 90px minmax(120px, 1fr) minmax(150px, 1fr) minmax(80px, 1fr) auto;
   }
   .mb-dir-btn.dir-arrow {
     flex: 0 0 42px;
@@ -609,6 +609,14 @@
   .mb-seg-adjust::-webkit-outer-spin-button,
   .mb-seg-adjust::-webkit-inner-spin-button { -webkit-appearance: none; }
   .mb-seg-adjust:focus { border-color: var(--accent2); }
+  .mb-fitting-select {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 0.7rem;
+    padding: 5px 6px; width: 100%; cursor: pointer;
+  }
+  .mb-fitting-select:focus { border-color: var(--accent2); outline: none; }
+  .mb-fitting-cell { display: flex; flex-direction: column; gap: 4px; }
+  .mb-cc-label { display: flex; align-items: center; gap: 4px; font-size: 0.65rem; color: var(--text-dim); cursor: pointer; }
 
   /* Direction toggle */
   .mb-dir-group {
@@ -622,8 +630,8 @@
     cursor: pointer; transition: all 0.12s; letter-spacing: 0.05em;
     white-space: nowrap;
   }
-  .mb-dir-btn.active-L { background: #0a1520; border-color: #3a80c0; color: #6ab0f0; }
-  .mb-dir-btn.active-R { background: #1a0a10; border-color: #c03a60; color: #f06a90; }
+  .mb-dir-btn.active-L,
+  .mb-dir-btn.active-R { background: #0a1a10; border-color: var(--accent2); color: var(--accent2); }
   .mb-dir-btn:not(.active-L):not(.active-R):hover { border-color: var(--text-dim); color: var(--text); }
 
   /* No-bend label for last row */
@@ -802,10 +810,10 @@
   .mb-seg-meta { display: block; font-size: 0.62rem; color: var(--text-dim); }
   @media (max-width: 760px) {
     .mb-seg-header {
-      grid-template-columns: 74px minmax(86px, 1fr) 78px minmax(120px, 1fr) 26px;
+      grid-template-columns: 74px minmax(86px, 1fr) 78px minmax(100px, 1fr) minmax(60px, 1fr) 26px;
     }
     .mb-seg-row {
-      grid-template-columns: 74px minmax(86px, 1fr) 78px minmax(120px, 1fr) 26px;
+      grid-template-columns: 74px minmax(86px, 1fr) 78px minmax(100px, 1fr) minmax(60px, 1fr) 26px;
     }
     .mb-dir-btn {
       font-size: 0.66rem;
@@ -1920,32 +1928,9 @@
               <div class="hint">mm från vägg</div>
             </div>
           </div>
-          <div class="mb-end-grid mb-advanced-only">
-            <div class="mb-end-col">
-              <div class="mb-end-col-label">Start-koppling</div>
-              <select id="mb-fitting-start" onchange="mbFittingSelected('start')"></select>
-              <div class="mb-end-la-row">
-                <span>Instick (La)</span>
-                <input type="number" id="mb-end-la-start" value="10" min="0" step="1" oninput="mbLaChanged('start')">
-                <span>mm</span>
-              </div>
-            </div>
-            <div class="mb-end-col">
-              <div class="mb-end-col-label">Slut-koppling</div>
-              <select id="mb-fitting-slut" onchange="mbFittingSelected('slut')"></select>
-              <div class="mb-end-la-row">
-                <span>Instick (La)</span>
-                <input type="number" id="mb-end-la-slut" value="10" min="0" step="1" oninput="mbLaChanged('slut')">
-                <span>mm</span>
-              </div>
-              <div class="mb-end-la-row mb-advanced-only" style="margin-top:8px;">
-                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-                  <input type="checkbox" id="mb-slut-cc" onchange="mbRefreshEnd()" style="accent-color:var(--accent2);">
-                  <span style="font-size:0.7rem;color:var(--text-dim);">Mätt till CC</span>
-                </label>
-              </div>
-            </div>
-          </div>
+          <!-- Hidden La state inputs — populated by mbFittingSelected() -->
+          <input type="hidden" id="mb-end-la-start" value="10">
+          <input type="hidden" id="mb-end-la-slut" value="10">
         </div>
       </div>
 
@@ -1953,7 +1938,7 @@
       <div class="section-label">Sträckor &amp; riktningar</div>
       <div class="mb-segments-wrap">
         <div class="mb-seg-header">
-          <span>Sträcka</span><span>Längd (mm)</span><span class="mb-advanced-only">Justering</span><span>Riktning</span><span></span>
+          <span>Sträcka</span><span>Längd (mm)</span><span class="mb-advanced-only">Justering</span><span>Koppling</span><span>Riktning</span><span></span>
         </div>
         <div id="mb-seg-list"></div>
       </div>
@@ -3128,8 +3113,8 @@ function setTrPerspPreset(preset) {
 }
 
 // Default segments (spec example)
-let mbSegments = [1420, 1312, 405, 300];
-let mbDirs     = ['L', 'R', 'R'];  // length = mbSegments.length - 1
+let mbSegments = [300, 300, 300];
+let mbDirs     = ['L', 'R'];  // length = mbSegments.length - 1
 let mbAdjustments = mbSegments.map(() => 0);
 let mbMode = 'simple';
 let mbMeasurementMode = 'practical';
@@ -3138,6 +3123,9 @@ let mbFittings = [];
 let mbLaStart      = 10;
 let mbLaSlut       = 10;
 let mbStartAddsLa  = true;
+let mbFittingIdStart = '';
+let mbFittingIdSlut  = '';
+let mbSlutCC = false;
 
 function mbFormatPracticalDistance(mm) {
   const rounded = Math.round(mm);
@@ -3236,24 +3224,25 @@ function mbFittingSelected(end) {
   if (!sel || !laInp) return;
   const fittingId = sel.value;
   const dy = parseFloat(document.getElementById('mb-diam')?.value) || 12;
+  if (end === 'start') mbFittingIdStart = fittingId;
+  else                  mbFittingIdSlut  = fittingId;
   if (fittingId) {
     const fit = mbFittings.find(f => f.id === fittingId);
     const La = fit?.dimensioner?.[String(dy)]?.La ?? 0;
     laInp.value = La;
-    laInp.readOnly = true;
-    laInp.style.opacity = '0.55';
     if (end === 'start') {
       mbLaStart     = La;
       mbStartAddsLa = fit?.addsLaAtStart ?? true;
     } else {
       mbLaSlut = La;
+      mbSlutCC = !!fit?.defaultCC;
       const ccBox = document.getElementById('mb-slut-cc');
-      if (ccBox) ccBox.checked = !!fit?.defaultCC;
+      if (ccBox) ccBox.checked = mbSlutCC;
     }
   } else {
-    laInp.readOnly = false;
-    laInp.style.opacity = '1';
-    if (end === 'start') mbStartAddsLa = true;
+    laInp.value = 0;
+    if (end === 'start') { mbLaStart = 0; mbStartAddsLa = true; }
+    else { mbLaSlut = 0; }
   }
   mbRefreshEnd();
 }
@@ -3470,6 +3459,51 @@ function mbRenderSegments() {
     adjInp.title = 'Autojustering';
     adjInp.readOnly = true;
 
+    // Fitting cell — first row = start coupling, last row = slut coupling + CC
+    const fittingCell = document.createElement('div');
+    fittingCell.className = 'mb-fitting-cell';
+    if (i === 0 || isLast) {
+      const end = i === 0 ? 'start' : 'slut';
+      const fitSel = document.createElement('select');
+      fitSel.id = `mb-fitting-${end}`;
+      fitSel.className = 'mb-fitting-select';
+      const noneOpt = document.createElement('option');
+      noneOpt.value = ''; noneOpt.textContent = '— ingen —';
+      fitSel.appendChild(noneOpt);
+      const dy = parseFloat(document.getElementById('mb-diam')?.value) || 12;
+      mbFittings.forEach(f => {
+        const dim = f.dimensioner?.[String(dy)];
+        if (!dim) return;
+        const o = document.createElement('option');
+        o.value = f.id;
+        o.textContent = f.namn.split(' ').slice(0, 3).join(' ');
+        fitSel.appendChild(o);
+      });
+      fitSel.value = end === 'start' ? mbFittingIdStart : mbFittingIdSlut;
+      fitSel.addEventListener('change', () => {
+        if (end === 'start') mbFittingIdStart = fitSel.value;
+        else                  mbFittingIdSlut  = fitSel.value;
+        mbFittingSelected(end);
+      });
+      fittingCell.appendChild(fitSel);
+      if (isLast) {
+        const ccLabel = document.createElement('label');
+        ccLabel.className = 'mb-cc-label';
+        const ccBox = document.createElement('input');
+        ccBox.type = 'checkbox';
+        ccBox.id = 'mb-slut-cc';
+        ccBox.checked = mbSlutCC;
+        ccBox.style.accentColor = 'var(--accent2)';
+        ccBox.addEventListener('change', () => {
+          mbSlutCC = ccBox.checked;
+          mbRefreshEnd();
+        });
+        ccLabel.appendChild(ccBox);
+        ccLabel.appendChild(document.createTextNode(' CC'));
+        fittingCell.appendChild(ccLabel);
+      }
+    }
+
     const dirCell = document.createElement('div');
     if (!isLast) {
       dirCell.className = 'mb-dir-group';
@@ -3486,8 +3520,10 @@ function mbRenderSegments() {
         dirCell.appendChild(btn);
       });
     } else {
-      dirCell.className = 'mb-no-bend mb-advanced-only' + (mbMode === 'simple' ? ' mb-hidden' : '');
+      // Keep cell in grid flow but invisible — prevents del button column drift
+      dirCell.className = 'mb-no-bend mb-advanced-only';
       dirCell.textContent = '— ingen böj';
+      if (mbMode === 'simple') dirCell.style.visibility = 'hidden';
     }
 
     const del = document.createElement('button');
@@ -3503,7 +3539,7 @@ function mbRenderSegments() {
       mbRenderSegments();
     });
 
-    row.append(label, inp, adjInp, dirCell, del);
+    row.append(label, inp, adjInp, fittingCell, dirCell, del);
     list.appendChild(row);
   });
 }
