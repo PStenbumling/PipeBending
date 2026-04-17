@@ -839,6 +839,7 @@
     color: var(--text-dim);
   }
   .mb-seg-preview-line-main { color: var(--text); }
+  .mb-seg-preview-line-contrib { color: var(--text-dim); }
   .mb-seg-preview-line-adjust { color: var(--text-dim); }
   .mb-seg-preview-line-bd { color: var(--accent2); }
   @media (max-width: 760px) {
@@ -3240,6 +3241,54 @@ function mbGetAdjustmentReason(i, useClamp, isCC) {
   return 'justering';
 }
 
+function mbGetSegmentContributions(i, useClamp, isCC) {
+  const last = mbSegments.length - 1;
+  const contributions = [];
+  const build = parseFloat(document.getElementById('mb-fixture-build')?.value) || 0;
+
+  if (i === 0) {
+    if (mbStartInsertionDepth) {
+      contributions.push({ dir: 'left', value: mbStartInsertionDepth, label: 'insertion' });
+    }
+    if (useClamp && build) {
+      contributions.push({ dir: 'right', value: -1 * build, label: 'wall mount' });
+    }
+    return contributions;
+  }
+
+  if (i === last) {
+    if (useClamp && build) {
+      contributions.push({ dir: 'left', value: -1 * build, label: 'wall mount' });
+    }
+    if (isCC && mbLaSlut) {
+      contributions.push({ dir: 'right', value: -mbLaSlut, label: 'La (CC)' });
+    } else if (!isCC) {
+      const rightValue = (useClamp ? build : 0) + (mbLaSlut || 0);
+      const rightLabel = useClamp && mbLaSlut ? 'wall mount + La' : (useClamp ? 'wall mount' : 'La');
+      if (rightValue) contributions.push({ dir: 'right', value: rightValue, label: rightLabel });
+    }
+    return contributions;
+  }
+
+  if (useClamp && build) {
+    contributions.push({ dir: 'left', value: -build, label: 'wall mount' });
+    contributions.push({ dir: 'right', value: build, label: 'wall mount' });
+  }
+
+  return contributions;
+}
+
+function mbBuildContributionLines(i, useClamp, isCC) {
+  return mbGetSegmentContributions(i, useClamp, isCC)
+    .map(part => {
+      const arrow = part.dir === 'left' ? '←' : '→';
+      const sign = part.value > 0 ? '+' : '−';
+      const absVal = Math.abs(Math.round(part.value));
+      return `<span class="mb-seg-meta mb-seg-preview-line-contrib">${arrow} ${sign}${absVal} mm (${part.label})</span>`;
+    })
+    .join('');
+}
+
 function mbBuildSegmentInfoLines(i, baseVal, effectiveVal, adjustmentVal, bdVal, useClamp, isCC) {
   const last = mbSegments.length - 1;
   const base = Math.round(baseVal);
@@ -3249,6 +3298,7 @@ function mbBuildSegmentInfoLines(i, baseVal, effectiveVal, adjustmentVal, bdVal,
   const reason = mbGetAdjustmentReason(i, useClamp, isCC);
 
   let html = `<span class="mb-seg-meta mb-seg-preview-line-main">${base} mm → ${effective} mm</span>`;
+  html += mbBuildContributionLines(i, useClamp, isCC);
   if (adjustment !== 0) {
     const absAdj = Math.abs(adjustment);
     const sign = adjustment > 0 ? '+' : '−';
