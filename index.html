@@ -703,6 +703,64 @@
     font-size: 0.69rem;
     margin-top: 8px;
   }
+  .mb-end-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .mb-end-col {
+    background: #0a1008;
+    border: 1px solid #1e2e1a;
+    border-radius: 4px;
+    padding: 8px 10px;
+  }
+  .mb-end-col-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .mb-end-la-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+  .mb-end-la-row input[type="number"] {
+    width: 64px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    padding: 4px 6px;
+  }
+  .mb-end-build-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+  .mb-end-build-row input[type="number"] {
+    width: 64px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    padding: 4px 6px;
+  }
+  @media (max-width: 520px) {
+    .mb-end-grid { grid-template-columns: 1fr; }
+  }
   .mb-seg-meta { display: block; font-size: 0.62rem; color: var(--text-dim); }
   @media (max-width: 760px) {
     .mb-seg-header {
@@ -1811,7 +1869,7 @@
         <span class="bd-label mb-advanced-only">mm</span>
       </div>
       <div class="mb-comp-box">
-        <div class="mb-comp-title">v0.5.9 - Förenklad montagekompensation</div>
+        <div class="mb-comp-title">v0.6.0 - Förenklad montagekompensation</div>
         <div class="mb-comp-grid">
           <div class="field">
             <label><input type="checkbox" id="mb-use-clamp" checked> Använd fäste-kompensation</label>
@@ -1822,14 +1880,31 @@
             <input type="number" id="mb-fixture-build" value="20" min="0" step="1">
             <div class="hint">mm från vägg</div>
           </div>
-          <div class="field">
-            <label><input type="checkbox" id="mb-use-instick" checked> Använd instick start/slut</label>
-            <div class="hint">Default: på</div>
+        </div>
+        <div class="mb-end-grid mb-advanced-only">
+          <div class="mb-end-col">
+            <div class="mb-end-col-label">Start-koppling</div>
+            <select id="mb-fitting-start" onchange="mbFittingSelected('start')"></select>
+            <div class="mb-end-la-row">
+              <span>Instick (La)</span>
+              <input type="number" id="mb-end-la-start" value="10" min="0" step="1" oninput="mbLaChanged('start')">
+              <span>mm</span>
+            </div>
           </div>
-          <div class="field">
-            <label for="mb-end-instick">Instick (start/slut)</label>
-            <input type="number" id="mb-end-instick" value="10" min="0" step="1">
-            <div class="hint">mm per ände</div>
+          <div class="mb-end-col">
+            <div class="mb-end-col-label">Slut-koppling</div>
+            <select id="mb-fitting-slut" onchange="mbFittingSelected('slut')"></select>
+            <div class="mb-end-la-row">
+              <span>Instick (La)</span>
+              <input type="number" id="mb-end-la-slut" value="10" min="0" step="1" oninput="mbLaChanged('slut')">
+              <span>mm</span>
+            </div>
+            <div class="mb-end-la-row mb-advanced-only" style="margin-top:8px;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" id="mb-slut-cc" onchange="mbRefreshEnd()" style="accent-color:var(--accent2);">
+                <span style="font-size:0.7rem;color:var(--text-dim);">Mätt till CC</span>
+              </label>
+            </div>
           </div>
         </div>
         <div id="mb-comp-note" class="mb-comp-note">Auto: appen räknar justeringar från 20/10 direkt. Ingen manuell +/- krävs.</div>
@@ -3025,6 +3100,10 @@ let mbAdjustments = mbSegments.map(() => 0);
 let mbMode = 'simple';
 let mbMeasurementMode = 'practical';
 let mbMiddleReferenceMode = 'auto';
+let mbFittings = [];
+let mbLaStart      = 10;
+let mbLaSlut       = 10;
+let mbStartAddsLa  = true;
 
 function mbFormatPracticalDistance(mm) {
   const rounded = Math.round(mm);
@@ -3057,37 +3136,106 @@ function mbGetEffectiveSegments() {
 
 function mbGetFixtureConfig() {
   const useClamp = !!document.getElementById('mb-use-clamp')?.checked;
-  const useInstick = !!document.getElementById('mb-use-instick')?.checked;
   const build = parseFloat(document.getElementById('mb-fixture-build')?.value) || 0;
-  const instick = parseFloat(document.getElementById('mb-end-instick')?.value) || 0;
-  return { useClamp, useInstick, build, instick };
+  return { useClamp, build };
 }
 
 function mbRecomputeAdjustments() {
   mbSyncAdjustmentsLength();
-  const { useClamp, useInstick, build, instick } = mbGetFixtureConfig();
+  const { useClamp, build } = mbGetFixtureConfig();
   const n = mbSegments.length;
   mbAdjustments = mbSegments.map(() => 0);
   if (!n) return;
 
-  // Start/end: insertion depth + wall relation offset.
   if (useClamp) mbAdjustments[0] -= build;
-  if (useInstick) mbAdjustments[0] += instick;
+  if (mbStartAddsLa) mbAdjustments[0] += mbLaStart;
   if (n > 1) {
-    if (useClamp) mbAdjustments[n - 1] += build;
-    if (useInstick) mbAdjustments[n - 1] += instick;
+    const isCC = !!document.getElementById('mb-slut-cc')?.checked;
+    if (isCC) {
+      mbAdjustments[n - 1] = -mbLaSlut;
+      if (mbAdjustments[n - 1] > 0) console.error('Fel: CC-slutände får inte ge positiv justering');
+    } else {
+      if (useClamp) mbAdjustments[n - 1] += build;
+      mbAdjustments[n - 1] += mbLaSlut;
+    }
   }
 
   // Middle segments: deterministic wall-based alternation (-,+,-,+ ...)
   if (useClamp) {
     for (let i = 1; i < n - 1; i++) {
-      if (mbMiddleReferenceMode === 'edge') {
-        mbAdjustments[i] = 0;
-      } else {
-        mbAdjustments[i] = (i % 2 === 1) ? -build : build;
-      }
+      mbAdjustments[i] = mbMiddleReferenceMode === 'edge' ? 0 : (i % 2 === 1 ? -build : build);
     }
   }
+}
+
+function mbLoadFittings() {
+  fetch('data/fittings.json')
+    .then(r => r.json())
+    .then(data => { mbFittings = data.fittings || []; mbPopulateEndDropdowns(); })
+    .catch(() => { mbFittings = []; mbPopulateEndDropdowns(); });
+}
+
+function mbPopulateEndDropdowns() {
+  ['start', 'slut'].forEach(end => mbBuildFittingSelect(end));
+}
+
+function mbBuildFittingSelect(end) {
+  const sel = document.getElementById(`mb-fitting-${end}`);
+  if (!sel) return;
+  const dy = parseFloat(document.getElementById('mb-diam')?.value) || 12;
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— ingen —</option>';
+  mbFittings.forEach(f => {
+    const dim = f.dimensioner?.[String(dy)];
+    if (!dim) return;
+    const o = document.createElement('option');
+    o.value = f.id;
+    o.textContent = `${f.namn.split(' ').slice(0, 3).join(' ')} (La=${dim.La} mm)`;
+    sel.appendChild(o);
+  });
+  if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+}
+
+function mbFittingSelected(end) {
+  const sel = document.getElementById(`mb-fitting-${end}`);
+  const laInp = document.getElementById(`mb-end-la-${end}`);
+  if (!sel || !laInp) return;
+  const fittingId = sel.value;
+  const dy = parseFloat(document.getElementById('mb-diam')?.value) || 12;
+  if (fittingId) {
+    const fit = mbFittings.find(f => f.id === fittingId);
+    const La = fit?.dimensioner?.[String(dy)]?.La ?? 0;
+    laInp.value = La;
+    laInp.readOnly = true;
+    laInp.style.opacity = '0.55';
+    if (end === 'start') {
+      mbLaStart     = La;
+      mbStartAddsLa = fit?.addsLaAtStart ?? true;
+    } else {
+      mbLaSlut = La;
+      const ccBox = document.getElementById('mb-slut-cc');
+      if (ccBox) ccBox.checked = !!fit?.defaultCC;
+    }
+  } else {
+    laInp.readOnly = false;
+    laInp.style.opacity = '1';
+    if (end === 'start') mbStartAddsLa = true;
+  }
+  mbRefreshEnd();
+}
+
+function mbLaChanged(end) {
+  const La = parseFloat(document.getElementById(`mb-end-la-${end}`)?.value) || 0;
+  if (end === 'start') mbLaStart = La; else mbLaSlut = La;
+  mbRefreshEnd();
+}
+
+function mbRefreshEnd() {
+  mbRecomputeAdjustments();
+  mbRenderSegments();
+  mbUpdateCompNote();
+  mbUpdateReferenceGuard();
+  if (document.getElementById('mb-results')?.style.display === 'block') mbCalculate();
 }
 
 function mbShouldShowReferenceGuard() {
@@ -3124,11 +3272,11 @@ function mbApplyEdgeReferenceMiddle() {
 function mbUpdateCompNote() {
   const note = document.getElementById('mb-comp-note');
   if (!note) return;
-  const { useClamp, useInstick, build, instick } = mbGetFixtureConfig();
+  const { useClamp, build } = mbGetFixtureConfig();
   const adjTotal = mbAdjustments.reduce((s, v) => s + (parseFloat(v) || 0), 0);
   const middleModeText = mbMiddleReferenceMode === 'edge' ? 'kant-referens i mitten' : 'auto i mitten';
   note.textContent =
-    `Fäste-komp: ${useClamp ? 'PÅ' : 'AV'} | instick: ${useInstick ? 'PÅ' : 'AV'} | bygg = ${Math.round(build)} mm | instick ände = ${Math.round(instick)} mm | ${middleModeText} | autojustering totalt = ${adjTotal >= 0 ? '+' : ''}${Math.round(adjTotal)} mm`;
+    `Fäste-komp: ${useClamp ? 'PÅ' : 'AV'} | bygg = ${Math.round(build)} mm | La start = ${mbLaStart} mm | La slut = ${mbLaSlut} mm | ${middleModeText} | autojustering totalt = ${adjTotal >= 0 ? '+' : ''}${Math.round(adjTotal)} mm`;
 }
 
 function mbApplySnaplockPreset() {
@@ -3144,11 +3292,11 @@ function mbClearAdjustments() {
 }
 
 function mbInitCompInputs() {
-  ['mb-use-clamp', 'mb-use-instick', 'mb-fixture-build', 'mb-end-instick'].forEach((id) => {
+  ['mb-use-clamp', 'mb-fixture-build'].forEach((id) => {
     const el = document.getElementById(id);
     if (!el) return;
     const refresh = () => {
-      if (id === 'mb-use-clamp' || id === 'mb-fixture-build') mbMiddleReferenceMode = 'auto';
+      mbMiddleReferenceMode = 'auto';
       mbRecomputeAdjustments();
       mbRenderSegments();
       mbUpdateCompNote();
@@ -3234,6 +3382,7 @@ function mbSetPipeSize(size) {
     document.getElementById('mb-clr').value = FROMAX_CLR[size] ?? FROMAX_CLR[12];
   }
   mbUpdateDeductBadge();
+  mbPopulateEndDropdowns();
 }
 
 function mbSetAngle(deg, btn) {
@@ -7935,6 +8084,7 @@ window.onload = () => {
   mbSyncAdjustmentsLength();
   mbRenderSegments();
   mbInitCompInputs();
+  mbLoadFittings();
   const savedMbMode = sessionStorage.getItem('mb_ui_mode') || 'simple';
   mbSetMode(savedMbMode);
   const savedSbMode = sessionStorage.getItem('sb_ui_mode') || 'simple';

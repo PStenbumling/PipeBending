@@ -1,0 +1,56 @@
+{
+  "fittings": [
+    {
+      "id": "va1130",
+      "namn": "VA 1130 Skarvkoppling",
+      "artikelnummer": "16530-1",
+      "rsk": "1946730",
+      "ean": "7393792000253",
+      "typ": "skarvkoppling",
+      "defaultCC": false,
+      "addsLaAtStart": true,
+      "beskrivning": "Vatette Klämringskoppling. Består av skruvdel, klämring och mutter. För kopparrör, rostfria- och elförzinkade stålrör och PEX-rör. Kopplingarna är försmorda och kräver normalt ingen ytterligare smörjning. Lättrade rörgängor på raka kopplingar med planända (typ 1136). Samtliga produkter med Vatette-ända kan kompletteras med kopplingsset för olika rörtyper. Vattenberörda delar samt muttrar (märkta med CR) är av typgodkänd avzinkningshärdig mässing.",
+      "bild": null,
+      "dimensioner": {
+        "6":    { "La": 6,   "LA": 36 },
+        "8":    { "La": 2,   "LA": 38 },
+        "10":   { "La": 5,   "LA": 39 },
+        "12":   { "La": 1,   "LA": 42 },
+        "15":   { "La": 1,   "LA": 47 },
+        "18":   { "La": 1,   "LA": 49 },
+        "22":   { "La": 1,   "LA": 53 },
+        "28":   { "La": 1,   "LA": 59 },
+        "35":   { "La": 2,   "LA": 70 },
+        "42":   { "La": 3,   "LA": 75 },
+        "54":   { "La": 2,   "LA": 86 },
+        "10x8": { "La": 3,   "LA": 39 },
+        "12x8": { "La": 1,   "LA": 40 },
+        "12x10":{ "La": 3,   "LA": 40.5 },
+        "15x8": { "La": 2,   "LA": 43 },
+        "15x10":{ "La": 3,   "LA": 43 },
+        "15x12":{ "La": 1,   "LA": 44.5 },
+        "16x10":{ "La": null,"LA": 44 },
+        "16x12":{ "La": null,"LA": 45 },
+        "16x15":{ "La": 1,   "LA": 47 },
+        "18x15":{ "La": 1.5, "LA": 48.5 }
+      }
+    },
+    {
+      "id": "va1150",
+      "namn": "VA 1150 T-stycke med utvändig rörgänga",
+      "artikelnummer": "46734",
+      "rsk": "1948231",
+      "ean": "7393792001274",
+      "typ": "t-stycke",
+      "defaultCC": true,
+      "addsLaAtStart": false,
+      "beskrivning": "Vatette Klämringskoppling. Består av skruvdel, klämring och mutter. För kopparrör, rostfria- och elförzinkade stålrör och PEX-rör. Kopplingarna är försmorda och kräver normalt ingen ytterligare smörjning. Lättrade rörgängor på raka kopplingar med planända (typ 1136). Samtliga produkter med Vatette-ända kan kompletteras med kopplingsset för olika rörtyper. Vattenberörda delar samt muttrar (märkta med CR) är av typgodkänd avzinkningshärdig mässing.",
+      "bild": null,
+      "dimensioner": {
+        "12": { "La": 12, "LA": 32.5, "Ld": 22 },
+        "15": { "La": 9,  "LA": 32,   "Ld": 22 },
+        "22": { "La": 8.5,"LA": 34.5, "Ld": 27.5 }
+      }
+    }
+  ]
+}
