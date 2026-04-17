@@ -1967,15 +1967,15 @@
       <div class="mb-comp-box">
         <div class="mb-comp-toggle-row" onclick="mbToggleComp()">
           <input type="checkbox" id="mb-use-clamp" checked onclick="event.stopPropagation();mbInitCompInputs()">
-          <label for="mb-use-clamp">Anpassa för montering (20 mm väggfäste)</label>
+          <label for="mb-use-clamp">Anpassa för montering (offset mellan vägg och rörplan)</label>
           <span class="mb-comp-chevron" id="mb-comp-chevron">▼</span>
         </div>
         <div class="mb-comp-body" id="mb-comp-body">
           <div class="mb-comp-grid" style="margin-top:4px;">
             <div class="field">
-              <label for="mb-fixture-build">Fästen bygger ut</label>
+              <label for="mb-fixture-build">Offset vägg → rörplan</label>
               <input type="number" id="mb-fixture-build" value="20" min="0" step="1">
-              <div class="hint">mm från vägg</div>
+              <div class="hint">mm mellan mätreferens och rörplan</div>
             </div>
           </div>
           <!-- Hidden La state inputs — populated by mbFittingSelected() -->
@@ -3179,6 +3179,7 @@ let mbMode = 'simple';
 let mbMeasurementMode = 'practical';
 let mbMiddleReferenceMode = 'auto';
 let mbFittings = [];
+let mbPlaneOffset = 20;
 let mbLaStart      = 10;
 let mbLaSlut       = 10;
 let mbStartInsertionDepth = 0;
@@ -3218,48 +3219,55 @@ function mbGetEffectiveSegments() {
 
 function mbGetFixtureConfig() {
   const useClamp = !!document.getElementById('mb-use-clamp')?.checked;
-  const build = parseFloat(document.getElementById('mb-fixture-build')?.value) || 0;
-  return { useClamp, build };
+  const planeOffset = parseFloat(document.getElementById('mb-fixture-build')?.value) || 0;
+  mbPlaneOffset = planeOffset;
+  return { useClamp, planeOffset };
 }
 
 function mbGetAdjustmentReason(i, useClamp, isCC) {
   const last = mbSegments.length - 1;
   if (i === 0) {
     const parts = [];
-    if (useClamp) parts.push('väggfäste');
-    if (mbStartInsertionDepth) parts.push('instick');
-    return parts.join(' + ') || 'justering';
+    if (useClamp && mbPlaneOffset) parts.push('offset: vägg → rörplan');
+    if (mbStartAddsLa && mbStartInsertionDepth) parts.push('instick');
+    if (!parts.length) return 'böjavdrag';
+    parts.push('böjavdrag');
+    return parts.join(' + ');
   }
   if (i === last) {
-    if (isCC) return 'CC koppling';
     const parts = [];
-    if (useClamp) parts.push('väggfäste');
-    if (mbLaSlut) parts.push('koppling');
+    if (useClamp && mbPlaneOffset) parts.push('offset: rörplan → centrum');
+    if (mbLaSlut) parts.push(isCC ? 'La, CC' : 'La');
     return parts.join(' + ') || 'justering';
   }
-  if (useClamp) return 'väggfäste';
-  return 'justering';
+  return 'böjavdrag';
 }
 
 function mbGetSegmentOffsetFlow(i, useClamp) {
   const last = mbSegments.length - 1;
   const flow = [];
-  const build = parseFloat(document.getElementById('mb-fixture-build')?.value) || 0;
-
-  if (!useClamp || !build) return flow;
+  const isCC = !!document.getElementById('mb-slut-cc')?.checked;
+  const planeOffset = useClamp ? mbPlaneOffset : 0;
 
   if (i === 0) {
-    flow.push({ dir: 'right', value: build, label: 'offset startar' });
+    if (mbStartAddsLa && mbStartInsertionDepth) {
+      flow.push({ prefix: 'Instick', dir: 'left', value: mbStartInsertionDepth, label: 'startkoppling' });
+    }
+    if (planeOffset) {
+      flow.push({ prefix: 'Offset', dir: 'right', value: planeOffset, label: 'vägg → rörplan' });
+    }
     return flow;
   }
 
   if (i === last) {
-    flow.push({ dir: 'left', value: -build, label: 'offset går tillbaka' });
+    if (planeOffset) {
+      flow.push({ prefix: 'Offset', dir: 'left', value: -planeOffset, label: 'rörplan → centrum' });
+    }
+    if (mbLaSlut) {
+      flow.push({ prefix: 'La', dir: 'right', value: isCC ? -mbLaSlut : mbLaSlut, label: isCC ? 'CC' : 'slutkoppling' });
+    }
     return flow;
   }
-
-  flow.push({ dir: 'left', value: build, label: 'offset in' });
-  flow.push({ dir: 'right', value: -build, label: 'offset ut' });
 
   return flow;
 }
@@ -3272,7 +3280,7 @@ function mbBuildOffsetFlowLines(i, useClamp) {
       const arrow = part.dir === 'left' ? '←' : '→';
       const sign = part.value > 0 ? '+' : '−';
       const absVal = Math.abs(Math.round(part.value));
-      return `<span class="mb-seg-meta mb-seg-preview-line-contrib">Offset: ${arrow} ${sign}${absVal} mm (${part.label})</span>`;
+      return `<span class="mb-seg-meta mb-seg-preview-line-contrib">${part.prefix}: ${arrow} ${sign}${absVal} mm (${part.label})</span>`;
     })
     .join('');
 }
@@ -3300,29 +3308,33 @@ function mbBuildSegmentInfoLines(i, baseVal, effectiveVal, adjustmentVal, bdVal,
 
 function mbRecomputeAdjustments() {
   mbSyncAdjustmentsLength();
-  const { useClamp, build } = mbGetFixtureConfig();
+  const { useClamp, planeOffset } = mbGetFixtureConfig();
   const n = mbSegments.length;
+  const last = n - 1;
+  const bd = mbGetBendDeduction();
+  const offset = useClamp ? planeOffset : 0;
   mbAdjustments = mbSegments.map(() => 0);
   if (!n) return;
 
-  if (useClamp) mbAdjustments[0] -= build;
-  if (mbStartInsertionDepth) mbAdjustments[0] += mbStartInsertionDepth;
+  mbAdjustments[0] = 0;
+  if (offset) mbAdjustments[0] += offset;
+  if (mbStartAddsLa && mbStartInsertionDepth) mbAdjustments[0] += mbStartInsertionDepth;
+  mbAdjustments[0] -= bd;
+
   if (n > 1) {
     const isCC = !!document.getElementById('mb-slut-cc')?.checked;
+    mbAdjustments[last] = 0;
+    if (offset) mbAdjustments[last] -= offset;
     if (isCC) {
-      mbAdjustments[n - 1] = -mbLaSlut;
-      if (mbAdjustments[n - 1] > 0) console.error('Fel: CC-slutände får inte ge positiv justering');
+      mbAdjustments[last] -= mbLaSlut;
+      if (mbAdjustments[last] > 0) console.error('Fel: CC-slutände får inte ge positiv justering');
     } else {
-      if (useClamp) mbAdjustments[n - 1] += build;
-      mbAdjustments[n - 1] += mbLaSlut;
+      mbAdjustments[last] += mbLaSlut;
     }
   }
 
-  // Middle segments: deterministic wall-based alternation (-,+,-,+ ...)
-  if (useClamp) {
-    for (let i = 1; i < n - 1; i++) {
-      mbAdjustments[i] = mbMiddleReferenceMode === 'edge' ? 0 : (i % 2 === 1 ? -build : build);
-    }
+  for (let i = 1; i < n - 1; i++) {
+    mbAdjustments[i] = -bd;
   }
 }
 
