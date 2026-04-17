@@ -842,6 +842,58 @@
   .mb-seg-preview-line-contrib { color: var(--text-dim); }
   .mb-seg-preview-line-adjust { color: var(--text-dim); }
   .mb-seg-preview-line-bd { color: var(--accent2); }
+  .mb-seg-placement-hint { color: var(--accent); font-style: italic; }
+  .mb-bocken-guide {
+    padding: 8px 4px 12px;
+    margin-bottom: 8px;
+    border-left: 2px solid var(--accent);
+    background: rgba(var(--accent-rgb, 100, 150, 200), 0.08);
+    font-size: 0.62rem;
+    color: var(--text);
+  }
+  .mb-guide-title {
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: var(--accent);
+  }
+  .mb-guide-marks {
+    font-family: monospace;
+    margin: 3px 0;
+    letter-spacing: 8px;
+  }
+  .mb-guide-legend {
+    line-height: 1.4;
+    color: var(--text-dim);
+  }
+  .mb-guide-legend span {
+    display: block;
+    margin: 2px 0;
+  }
+  .mb-bend-zone-viz {
+    display: block;
+    margin-top: 3px;
+    height: 12px;
+    background: linear-gradient(90deg, rgba(var(--accent2-rgb, 180, 100, 100), 0.1) 0%, rgba(var(--accent2-rgb, 180, 100, 100), 0.2) 100%);
+    border-left: 1px solid var(--accent2);
+    border-radius: 1px;
+    width: var(--bend-width, 60px);
+    position: relative;
+    font-size: 0.50rem;
+    line-height: 12px;
+    padding-left: 2px;
+    color: var(--accent2);
+    box-sizing: border-box;
+  }
+  .mb-bend-zone-label {
+    font-weight: 500;
+    opacity: 0.8;
+  }
+  .mb-bend-zone-icon {
+    display: inline-block;
+    font-size: 0.55rem;
+    margin-right: 1px;
+    letter-spacing: -1px;
+  }
   @media (max-width: 760px) {
     .mb-seg-header {
       grid-template-columns: 74px minmax(86px, 1fr) 78px minmax(100px, 1fr) minmax(60px, 1fr) 26px;
@@ -3294,6 +3346,12 @@ function mbBuildSegmentInfoLines(i, baseVal, effectiveVal, adjustmentVal, bdVal,
   const reason = mbGetAdjustmentReason(i, useClamp, isCC);
 
   let html = `<span class="mb-seg-meta mb-seg-preview-line-main">${base} mm → ${effective} mm</span>`;
+  
+  // Add placement instruction for START segment
+  if (i === 0) {
+    html += `<span class="mb-seg-meta mb-seg-placement-hint">Placering: Lägg märket vid <strong>0-linjen</strong> på bocken (start av böj)</span>`;
+  }
+  
   html += mbBuildOffsetFlowLines(i, useClamp);
   if (adjustment !== 0 || bd !== 0) {
     const absAdj = Math.abs(adjustment);
@@ -3314,8 +3372,19 @@ function mbBuildSegmentInfoLines(i, baseVal, effectiveVal, adjustmentVal, bdVal,
     }
   }
   if (i > 0 && i < last) {
-    html += `<span class="mb-seg-meta mb-seg-preview-line-bd">Böjavdrag: −${bd} mm</span>`;
+    html += `<span class="mb-seg-meta mb-seg-preview-line-bd">Böjavdrag: −${bd} mm <em>(längd som försvinner i böjen)</em></span>`;
   }
+  
+  // Add bend zone visualization for segments with bend deduction
+  if (bd > 0) {
+    const bendZoneWidth = Math.max(20, Math.min(120, bd * 2));
+    const bendIcon = i === 0 ? '▪∿──' : i === last ? '──∿▪' : '──∿──';
+    html += `<span class="mb-bend-zone-viz" style="--bend-width: ${bendZoneWidth}px;">
+      <span class="mb-bend-zone-icon">${bendIcon}</span>
+      <span class="mb-bend-zone-label">böj: −${bd} mm</span>
+    </span>`;
+  }
+  
   return html;
 }
 
@@ -3588,6 +3657,21 @@ function mbRenderSegments() {
   const bd = mbGetBendDeduction();
   const list = document.getElementById('mb-seg-list');
   list.innerHTML = '';
+  
+  // Add bocken guide once at the beginning
+  const guide = document.createElement('div');
+  guide.className = 'mb-bocken-guide';
+  guide.innerHTML = `
+    <div class="mb-guide-title">Bockens markeringar:</div>
+    <div class="mb-guide-marks">|&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;|</div>
+    <div class="mb-guide-legend">
+      <span><strong>0-linjen</strong> = där ditt märke ska placeras (start av böj)</span><br>
+      <span><strong>Mittenstreck</strong> = böjens centrum</span><br>
+      <span><strong>Sista streck</strong> = slut på böjen</span>
+    </div>
+  `;
+  list.appendChild(guide);
+  
   mbSegments.forEach((len, i) => {
     const isLast = i === mbSegments.length - 1;
     const dir    = isLast ? null : mbDirs[i] || 'L';
