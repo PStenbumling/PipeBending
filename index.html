@@ -917,6 +917,22 @@
   }
   .mb-hero-val-accent { font-size: 1.4rem; color: var(--accent); }
   .mb-hero-val-danger { font-size: 1.4rem; color: #e74c3c; }
+  .mb-deduct-summary {
+    margin: -4px 0 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    background: #0d140d;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    color: var(--text-dim);
+  }
+  .mb-deduct-summary strong {
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-weight: 700;
+  }
   .mb-diagram-label { margin-top: 20px; }
   .mb-note-gap { margin-top: 12px; }
   .mb-last-tag { font-size: 0.6rem; }
@@ -1998,6 +2014,11 @@
           <div class="mb-hero-label">// Böjavdrag totalt</div>
           <div><span class="mb-hero-val mb-hero-val-danger" id="mb-total-deduct">—</span> <span class="mb-hero-unit">mm</span></div>
         </div>
+      </div>
+      <div class="mb-deduct-summary" id="mb-deduct-summary">
+        Antal böjar: <strong>—</strong><br>
+        Böjavdrag per böj: <strong>—</strong><br>
+        Totalt böjavdrag: <strong>—</strong>
       </div>
 
       <!-- Overflow warning + coupling solution -->
@@ -3682,6 +3703,12 @@ function mbCalculate() {
   document.getElementById('mb-total-val').textContent    = Math.round(total);
   document.getElementById('mb-bend-count').textContent   = nBends;
   document.getElementById('mb-total-deduct').textContent = Math.round(totalDeduct);
+  const deductSummaryEl = document.getElementById('mb-deduct-summary');
+  if (deductSummaryEl) {
+    deductSummaryEl.innerHTML = `Antal böjar: <strong>${nBends}</strong><br>
+      Böjavdrag per böj: <strong>${Math.round(bd)} mm</strong><br>
+      Totalt böjavdrag: <strong>${Math.round(totalDeduct)} mm</strong>`;
+  }
 
   const mbSimpleCard = document.getElementById('mb-simple-card');
   if (mbSimpleCard) {
