@@ -3295,10 +3295,23 @@ function mbBuildSegmentInfoLines(i, baseVal, effectiveVal, adjustmentVal, bdVal,
 
   let html = `<span class="mb-seg-meta mb-seg-preview-line-main">${base} mm → ${effective} mm</span>`;
   html += mbBuildOffsetFlowLines(i, useClamp);
-  if (adjustment !== 0) {
+  if (adjustment !== 0 || bd !== 0) {
     const absAdj = Math.abs(adjustment);
     const sign = adjustment > 0 ? '+' : '−';
-    html += `<span class="mb-seg-meta mb-seg-preview-line-adjust">Justering: ${sign}${absAdj} mm (${reason})</span>`;
+    
+    // START segment: show explicit formula with offset, instick, and bend deduction
+    if (i === 0 && useClamp) {
+      const offset = mbPlaneOffset;
+      const instick = mbStartAddsLa ? mbStartInsertionDepth : 0;
+      const parts = [];
+      if (offset) parts.push(`+${offset}`);
+      if (instick) parts.push(`+${instick}`);
+      if (bd) parts.push(`−${bd}`);
+      const formula = parts.join(' ');
+      html += `<span class="mb-seg-meta mb-seg-preview-line-adjust">Justering: ${formula} = ${sign}${absAdj} mm (${reason})</span>`;
+    } else if (adjustment !== 0) {
+      html += `<span class="mb-seg-meta mb-seg-preview-line-adjust">Justering: ${sign}${absAdj} mm (${reason})</span>`;
+    }
   }
   if (i > 0 && i < last) {
     html += `<span class="mb-seg-meta mb-seg-preview-line-bd">Böjavdrag: −${bd} mm</span>`;
