@@ -3760,7 +3760,7 @@ function mbCalculate() {
     rows += `<tr class="${onP2 ? 'mb-row-p2' : ''}">
       <td>${pjasTag} ${i + 1}</td>
       <td>${posCell}</td>
-      <td><span class="mb-raw-len">${Math.round(effectiveSegments[i])} mm</span><span class="mb-seg-meta">bas ${Math.round(mbSegments[i])} mm ${mbAdjustments[i] >= 0 ? "+" : ""}${Math.round(mbAdjustments[i])} mm</span></td>
+      <td><span class="mb-raw-len">${Math.round(effectiveSegments[i])} mm</span>${mbAdjustments[i] !== 0 ? `<span class="mb-seg-meta">${Math.round(mbSegments[i])} → ${Math.round(effectiveSegments[i])} mm</span>` : ''}</td>
       <td>${deductStr}</td>
       <td>${dirLabel}</td>
     </tr>`;
@@ -3768,7 +3768,7 @@ function mbCalculate() {
   rows += `<tr class="mb-total-row">
     <td colspan="1">Tot</td>
     <td class="mb-mark-pos">${Math.round(total)} mm</td>
-    <td><span class="mb-raw-len">${Math.round(rawTotal)} mm</span><span class="mb-raw-label">effektiv ra langd (bas ${Math.round(rawBaseTotal)} mm ${rawAdjTotal >= 0 ? "+" : ""}${Math.round(rawAdjTotal)} mm)</span></td>
+    <td><span class="mb-raw-len">${Math.round(rawTotal)} mm</span>${rawAdjTotal !== 0 ? `<span class="mb-raw-label">${Math.round(rawBaseTotal)} → ${Math.round(rawTotal)} mm</span>` : ''}</td>
     <td>−${Math.round(totalDeduct)} mm</td>
     <td></td>
   </tr>`;
