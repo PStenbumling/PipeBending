@@ -542,6 +542,40 @@
   .mbsc-label { color:var(--text-dim); font-size:0.82rem; flex:1; }
   .mbsc-val { font-size:1.45rem; font-weight:bold; color:var(--accent); font-family:'Share Tech Mono', monospace; }
   .mbsc-unit { color:var(--text-dim); font-size:0.78rem; }
+  .mb-field-only { display: none; }
+  .mb-field-only.mb-field-visible { display: block; }
+  .field-rule {
+    margin: 0 0 8px;
+    color: #ffcc00;
+    font-size: 0.83rem;
+  }
+  .field-steps { margin-top: 4px; }
+  .mb-hide-in-field.mb-field-hidden { display: none; }
+  .mb-start-ref-wrap { margin-bottom: 10px; padding: 10px 12px; border: 1px solid #2a2a2a; border-radius: 6px; background: #0d1a0f; }
+  .mb-radio-opt { display: block; margin: 4px 0; font-size: 0.88rem; cursor: pointer; }
+  .mb-simple-rule {
+    margin: 10px 0 4px;
+    color: #ffcc00;
+    font-size: 0.83rem;
+  }
+  .mb-simple-steps { margin-top: 12px; }
+  .mb-step {
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: #0d1a0f;
+  }
+  .mb-step-header {
+    font-weight: bold;
+    color: var(--accent2);
+    font-size: 0.82rem;
+    margin-bottom: 6px;
+  }
+  .mb-step-body div { margin: 3px 0; font-size: 0.9rem; }
+  .mb-step-length { color: var(--accent); font-family: 'Share Tech Mono', monospace; }
+  .mb-step-dir-L { color: #6ab0f0; }
+  .mb-step-dir-R { color: #f06a90; }
   .mb-trappan {
     margin-top: 10px;
     padding-top: 8px;
@@ -1969,7 +2003,8 @@
         <div class="intro-extra">⚙ U-bockläge sätter upp ett 4-böjars omlopp direkt. Skarv med muff: appen visar märkpositioner på pjäs 1 och pjäs 2 separat utan att ändra grundmåtten. Trappan-märkningstekniken (fält): rörmokare räknar 1.9× eller 2.3× böjavdrag för märkavstånden. Appen räknar samma böjavdrag direkt — märken blir identiska.</div>
       </div>
       <div class="mb-mode-toggle" id="mb-mode-toggle">
-        <button type="button" class="mbm-btn active" data-mbmode="simple" onclick="mbSetMode('simple')">Enkelt</button>
+        <button type="button" class="mbm-btn active" data-mbmode="field" onclick="mbSetMode('field')">Fält</button>
+        <button type="button" class="mbm-btn" data-mbmode="simple" onclick="mbSetMode('simple')">Enkelt</button>
         <button type="button" class="mbm-btn" data-mbmode="advanced" onclick="mbSetMode('advanced')">Avancerat</button>
       </div>
       <div class="panel-title">Indata — Flerböj (sekventiell märkning)</div>
@@ -2059,6 +2094,12 @@
         </div>
       </div>
 
+      <div class="mb-field-only mb-start-ref-wrap" id="mb-start-ref-wrap">
+        <div class="field-label" style="margin-bottom:6px;">Hur mäter du första måttet?</div>
+        <label class="mb-radio-opt"><input type="radio" name="mb-start-ref" value="stop" checked onchange="mbSetStartRef('stop')"> Till stopp i kopplingen</label>
+        <label class="mb-radio-opt"><input type="radio" name="mb-start-ref" value="outside" onchange="mbSetStartRef('outside')"> Från utsida av kopplingen</label>
+        <div id="mb-start-ref-hint" class="hint" style="display:none;"></div>
+      </div>
       <button type="button" class="calc-btn mb-calc-btn" onclick="mbSetIsoRef('travel'); mbCalculate()">▶ BERÄKNA MÄRKEN</button>
     </div>
 
@@ -2075,6 +2116,13 @@
         </div>
         <div id="mbsc-note" class="hint"></div>
         <div id="mbsc-measure-hint" class="hint">Mät alltid från START — inte mellan märken.</div>
+        <div id="mb-simple-rule" class="mb-simple-rule">⚠ Håll START åt samma håll hela tiden</div>
+        <div id="mb-simple-steps" class="mb-simple-steps"></div>
+      </div>
+
+      <div id="mb-field-card" class="mb-field-only">
+        <div class="field-rule">⚠ Efter första märket mäter du från föregående markering — inte från START</div>
+        <div id="mb-field-steps" class="field-steps"></div>
       </div>
 
       <!-- Hero: total length -->
@@ -2092,7 +2140,7 @@
           <div><span class="mb-hero-val mb-hero-val-danger" id="mb-total-deduct">—</span> <span class="mb-hero-unit">mm</span></div>
         </div>
       </div>
-      <div class="mb-deduct-summary" id="mb-deduct-summary">
+      <div class="mb-deduct-summary mb-hide-in-field" id="mb-deduct-summary">
         Antal böjar: <strong>—</strong><br>
         Böjavdrag per böj: <strong>—</strong><br>
         Totalt böjavdrag: <strong>—</strong>
@@ -2132,7 +2180,7 @@
       </div>
 
       <!-- Marks table -->
-      <div class="panel">
+      <div class="panel mb-hide-in-field">
         <div class="action-required-header" id="mb-action-header"></div>
         <div class="panel-title">Märkningar på röret</div>
         <div id="mb-first-seg-hint" class="hint-danger"></div>
@@ -3227,7 +3275,7 @@ function setTrPerspPreset(preset) {
 let mbSegments = [300, 300, 300];
 let mbDirs     = ['L', 'R'];  // length = mbSegments.length - 1
 let mbAdjustments = mbSegments.map(() => 0);
-let mbMode = 'simple';
+let mbMode = 'field';
 let mbMeasurementMode = 'practical';
 let mbMiddleReferenceMode = 'auto';
 let mbFittings = [];
@@ -3236,6 +3284,7 @@ let mbLaStart      = 10;
 let mbLaSlut       = 10;
 let mbStartInsertionDepth = 0;
 let mbStartAddsLa  = true;
+let mbStartRefMode = 'stop';
 let mbFittingIdStart = '';
 let mbFittingIdSlut  = '';
 let mbSlutCC = false;
@@ -3401,7 +3450,11 @@ function mbRecomputeAdjustments() {
   mbAdjustments[0] = 0;
   if (offset) mbAdjustments[0] += offset;
   if (mbStartAddsLa && mbStartInsertionDepth) mbAdjustments[0] += mbStartInsertionDepth;
-  mbAdjustments[0] -= bd;
+  if (mbStartRefMode === 'outside' && !mbFittingIdStart) {
+    const size = parseFloat(document.getElementById('mb-diam')?.value) || 12;
+    mbAdjustments[0] += mbStartInsertionDepth > 0 ? mbStartInsertionDepth : size;
+  }
+  if (mbStartRefMode !== 'outside') mbAdjustments[0] -= bd;
 
   if (n > 1) {
     const isCC = !!document.getElementById('mb-slut-cc')?.checked;
@@ -3529,16 +3582,85 @@ function mbInitCompInputs() {
   mbRecomputeAdjustments();
 }
 
+function mbSetStartRef(mode) {
+  mbStartRefMode = mode;
+  const hint = document.getElementById('mb-start-ref-hint');
+  if (!hint) return;
+  if (mode === 'outside' && !mbFittingIdStart) {
+    const size = parseFloat(document.getElementById('mb-diam')?.value) || 12;
+    const depth = mbStartInsertionDepth > 0 ? mbStartInsertionDepth : size;
+    hint.textContent = `Instick läggs till automatiskt (${depth} mm)`;
+    hint.style.display = 'block';
+  } else {
+    hint.style.display = 'none';
+  }
+}
+
+function renderFieldSteps(marks, nBends, effectiveSegments, bd) {
+  const container = document.getElementById('mb-field-steps');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < nBends; i++) {
+    const dir = mbDirs[i] || 'L';
+    const dirText = dir === 'L' ? 'Vänster ←' : 'Höger →';
+    const dirClass = dir === 'L' ? 'mb-step-dir-L' : 'mb-step-dir-R';
+    const step = document.createElement('div');
+    step.className = 'mb-step';
+    if (i === 0) {
+      step.innerHTML = `<div class="mb-step-header">Steg 1</div>
+        <div class="mb-step-body">
+          <div>Mät: <strong class="mb-step-length">${Math.round(marks[0])} mm</strong> från START</div>
+          <div>Markera S1 — placera vid <strong>bortre strecket</strong></div>
+          <div>Böj: <strong class="${dirClass}">${dirText}</strong></div>
+        </div>`;
+    } else {
+      step.innerHTML = `<div class="mb-step-header">Steg ${i + 1}</div>
+        <div class="mb-step-body">
+          <div>Sätt tumstock <strong>${Math.round(bd)} mm före S${i}</strong></div>
+          <div>Mät: <strong class="mb-step-length">${Math.round(effectiveSegments[i] + bd)} mm</strong></div>
+          <div>Markera S${i + 1} — placera vid <strong>bortre strecket</strong></div>
+          <div>Böj: <strong class="${dirClass}">${dirText}</strong></div>
+        </div>`;
+    }
+    container.appendChild(step);
+  }
+}
+
+function renderMbSimpleSteps(marks, nBends) {
+  const container = document.getElementById('mb-simple-steps');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < nBends; i++) {
+    const dir = mbDirs[i] || 'L';
+    const dirText = dir === 'L' ? '← Vänster' : 'Höger →';
+    const dirClass = dir === 'L' ? 'mb-step-dir-L' : 'mb-step-dir-R';
+    const step = document.createElement('div');
+    step.className = 'mb-step';
+    step.innerHTML = `<div class="mb-step-header">Steg ${i + 1}</div>
+      <div class="mb-step-body">
+        <div>Mät upp: <strong class="mb-step-length">${Math.round(marks[i])} mm</strong> från START</div>
+        <div>Placera märket vid <strong>0-linjen</strong> på bocken</div>
+        <div>Böj: <strong class="${dirClass}">${dirText}</strong></div>
+      </div>`;
+    container.appendChild(step);
+  }
+}
+
 function mbSetMode(mode) {
   mbMode = mode;
   sessionStorage.setItem('mb_ui_mode', mode);
   document.querySelectorAll('#mb-section .mb-advanced-only').forEach(el =>
-    el.classList.toggle('mb-hidden', mode === 'simple'));
+    el.classList.toggle('mb-hidden', mode === 'simple' || mode === 'field'));
   document.querySelectorAll('#mb-section .mb-simple-only').forEach(el =>
-    el.classList.toggle('mb-hidden', mode === 'advanced'));
+    el.classList.toggle('mb-hidden', mode === 'advanced' || mode === 'field'));
   document.querySelectorAll('.mbm-btn').forEach(btn =>
     btn.classList.toggle('active', btn.dataset.mbmode === mode));
-  document.querySelector('.mb-segments-wrap')?.classList.toggle('mb-segments-simple', mode === 'simple');
+  document.querySelector('.mb-segments-wrap')?.classList.toggle('mb-segments-simple', mode === 'simple' || mode === 'field');
+
+  document.querySelectorAll('#mb-section .mb-field-only').forEach(el =>
+    el.classList.toggle('mb-field-visible', mode === 'field'));
+  document.querySelectorAll('#mb-section .mb-hide-in-field').forEach(el =>
+    el.classList.toggle('mb-field-hidden', mode === 'field'));
 
   const simpleCard = document.getElementById('mb-simple-card');
   const resultsVisible = document.getElementById('mb-results')?.style.display === 'block';
@@ -3703,7 +3825,7 @@ function mbRenderSegments() {
 
     const adjInp = document.createElement('input');
     adjInp.type = 'number';
-    adjInp.className = 'mb-seg-adjust mb-advanced-only' + (mbMode === 'simple' ? ' mb-hidden' : '');
+    adjInp.className = 'mb-seg-adjust mb-advanced-only' + (mbMode !== 'advanced' ? ' mb-hidden' : '');
     adjInp.value = mbAdjustments[i] || 0;
     adjInp.step = 1;
     adjInp.title = 'Autojustering';
@@ -3773,7 +3895,7 @@ function mbRenderSegments() {
       // Keep cell in grid flow but invisible — prevents del button column drift
       dirCell.className = 'mb-no-bend mb-advanced-only';
       dirCell.textContent = '— ingen böj';
-      if (mbMode === 'simple') dirCell.style.visibility = 'hidden';
+      if (mbMode !== 'advanced') dirCell.style.visibility = 'hidden';
     }
 
     const del = document.createElement('button');
@@ -3844,31 +3966,27 @@ function mbSetIsoRef(mode) {
 
 // ── Calculation ────────────────────────────────────────────────────────────
 function mbComputeMarks(segs, bd) {
+  // segs are already effective (adjusted), so no need to subtract bd again
   const marks = [];
   let pos = 0;
   for (let i = 0; i < segs.length; i++) {
-    pos += i === 0 ? segs[i] : segs[i] - bd;
+    pos += segs[i];
     marks.push(pos);
   }
   return marks;
 }
 
 function mbRenderTrappan(segments, bendDeduction) {
+  // segments are already effective (adjusted), so display them as-is
   const lines = [];
-  const bd = Math.round(bendDeduction);
   for (let i = 0; i < segments.length; i++) {
     const base = Math.round(segments[i]);
     const isFirst = i === 0;
-    const isLast = i === segments.length - 1;
     if (isFirst) {
       lines.push(`${base} mm`);
       continue;
     }
-    if (isLast) {
-      lines.push(`+ ${base} mm`);
-    } else {
-      lines.push(`+ ${Math.round(base - bd)} mm (${base} − ${bd})`);
-    }
+    lines.push(`+ ${base} mm`);
   }
   return lines.join('\n');
 }
@@ -3923,8 +4041,19 @@ function mbCalculate() {
         }
       }
       mbSimpleCard.classList.add('visible');
+      renderMbSimpleSteps(marks, nBends);
     } else {
       mbSimpleCard.classList.remove('visible');
+    }
+  }
+
+  const fieldCard = document.getElementById('mb-field-card');
+  if (fieldCard) {
+    if (mbMode === 'field') {
+      fieldCard.classList.add('mb-field-visible');
+      renderFieldSteps(marks, nBends, effectiveSegments, bd);
+    } else {
+      fieldCard.classList.remove('mb-field-visible');
     }
   }
 
@@ -8433,7 +8562,7 @@ window.onload = () => {
   mbRenderSegments();
   mbInitCompInputs();
   mbLoadFittings();
-  const savedMbMode = sessionStorage.getItem('mb_ui_mode') || 'simple';
+  const savedMbMode = sessionStorage.getItem('mb_ui_mode') || 'field';
   mbSetMode(savedMbMode);
   const savedSbMode = sessionStorage.getItem('sb_ui_mode') || 'simple';
   sbSetMode(savedSbMode);
