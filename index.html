@@ -2349,6 +2349,7 @@
       <div class="panel">
         <div class="panel-title">Böjmärken</div>
         <div id="sb-clamp-lead-result" class="hint-danger"></div>
+        <div id="sb-clamp-middle-result" class="hint-danger"></div>
         <div class="ref-strip" id="sb-ref-strip"></div>
         <div class="sb-marks-grid" id="sb-marks-grid"></div>
         <div id="sb-clamp-tail-result" class="hint-danger"></div>
@@ -6018,22 +6019,33 @@ function sbCalculate() {
 
   // Stage 4: result-zone warnings
 
-  // 4a. Clamp — lead-in priority (RULE: never show both simultaneously)
-  const clampLeadEl = document.getElementById('sb-clamp-lead-result');
-  const clampTailEl = document.getElementById('sb-clamp-tail-result');
+  // 4a. Clamp — lead priority, then middle (Fig 2 / 180° rotation), then tail
+  // RULE: never show more than one simultaneously
+  const clampLeadEl   = document.getElementById('sb-clamp-lead-result');
+  const clampMiddleEl = document.getElementById('sb-clamp-middle-result');
+  const clampTailEl   = document.getElementById('sb-clamp-tail-result');
   const clampIn     = geCheckClampLength(M1, size);
+  const clampMiddle = geCheckClampLength(L, size);
   const clampOut    = geCheckClampLength(rB, size);
   if (!clampIn.ok) {
     clampLeadEl.textContent = `⚠ Bocken slinter — röret är bara ${M1}mm framför M1 (minst ${clampIn.minRequired}mm krävs)`;
     clampLeadEl.classList.add('visible');
+    clampMiddleEl.classList.remove('visible');
     clampTailEl.classList.remove('visible');
   } else {
     clampLeadEl.classList.remove('visible');
-    if (!clampOut.ok) {
-      clampTailEl.textContent = `⚠ Kort svans — ${rB}mm efter M2 är för kort (minst ${clampOut.minRequired}mm rekommenderas)`;
-      clampTailEl.classList.add('visible');
-    } else {
+    if (!clampMiddle.ok) {
+      clampMiddleEl.textContent = `⚠ Klon tappar grepp vid böj 2 — mittdelen är bara ${Math.round(L)}mm (minst ${clampMiddle.minRequired}mm krävs för klongrepp efter 180° vridning, Fig 2-metoden)`;
+      clampMiddleEl.classList.add('visible');
       clampTailEl.classList.remove('visible');
+    } else {
+      clampMiddleEl.classList.remove('visible');
+      if (!clampOut.ok) {
+        clampTailEl.textContent = `⚠ Kort svans — ${rB}mm efter M2 är för kort (minst ${clampOut.minRequired}mm rekommenderas)`;
+        clampTailEl.classList.add('visible');
+      } else {
+        clampTailEl.classList.remove('visible');
+      }
     }
   }
 
