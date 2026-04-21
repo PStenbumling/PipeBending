@@ -1333,6 +1333,18 @@
   #sbend-svg, #swan-svg, #takoffset-svg { display: block; width: 100%; }
   .sb-note-gap { margin-top: 12px; }
 
+  .sb-process-card {
+    background: #0d1310; border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;
+    font-size: 0.82rem; display: none;
+  }
+  .sb-process-card.visible { display: block; }
+  .proc-method { font-weight: bold; color: var(--accent); margin-bottom: 6px; font-size: 0.85rem; }
+  .proc-row { padding: 2px 0; color: var(--text); line-height: 1.5; }
+  .proc-cut { color: #f0a500; }
+  .proc-collision { color: var(--danger); }
+  .proc-info { color: var(--text-dim); }
+
   #takoffset-section { display: none; }
   #takoffset-results  { display: none; }
   #takror-section { display: none; }
@@ -2330,6 +2342,7 @@
       <div class="sb-success" id="sb-success"></div>
       <div class="sb-warning" id="sb-warning"></div>
       <div id="sb-tight-warn" class="hint-warn"></div>
+      <div id="sb-process-card" class="sb-process-card"></div>
       <button type="button" id="sb-autofix" class="sb-autofix-btn" onclick="sbAutoFix()">Justera automatiskt</button>
 
       <div class="sb-result-hero">
@@ -2995,6 +3008,11 @@ const M1_WARN = 30; // warning threshold below which accuracy is compromised
 
 // ── S-böj Practical Constraint ───────────────────────────────────────────────
 const SB_CLAMP_MIN = 40; // min free pipe for Fromax clamp — applies to M1 and L (Fig 2 second bend)
+
+// ── Global Fromax Process Rules ───────────────────────────────────────────────
+const MIN_GRIP         = 40; // absolute grip minimum — all bend types (= M1_MIN = SB_CLAMP_MIN)
+const CUT_ALLOWANCE    = 20; // extra pipe for grip compensation, kapas bort efter bockning
+const MIN_TOOL_SPACING = 15; // practical minimum L between bends (no perfect tight)
 
 let bananaHMode = false; // H-styckeläge: locks M1 = M1_MIN regardless of calculation
 let bananaM1ManualOverride = false; // manual M1 keeps bend geometry and applies positional offset
@@ -5935,6 +5953,52 @@ function sbUpdateWorkList(m1, m2) {
     </ul>`;
 }
 
+// ── Fromax Central Rule Engine ────────────────────────────────────────────────
+// Validates ALL physics and process constraints before results are shown.
+// Rule: system must NEVER return a solution that cannot be bent with Fromax No.55.
+function frValidate({ A, clr, D, M1in, L, rBin }) {
+  const rad = A * Math.PI / 180;
+  const L_tight_geom = 2 * clr * Math.tan(rad / 2);
+  const L_eff        = Math.max(L_tight_geom, MIN_TOOL_SPACING);
+  const tightFeasible = L_tight_geom >= MIN_GRIP;
+
+  // Method: tight only if tight is feasible AND user's L is near the minimum
+  const isTightConfig = tightFeasible && L <= L_eff + 5;
+  const method = isTightConfig ? 'tight' : 'standard';
+
+  // D_practical: tool geometry makes practical offset larger than theoretical at high angles
+  const D_theo = 2 * clr * (1 - Math.cos(rad));
+  let D_practical = null;
+  if (isTightConfig) {
+    if (A >= 60)      D_practical = D_theo * 1.5;
+    else if (A >= 50) D_practical = D_theo * 1.2;
+  }
+
+  // M1 grip: compensate with CUT_ALLOWANCE if short
+  const M1_gap     = Math.max(0, MIN_GRIP - M1in);
+  const M1_cut     = Math.min(M1_gap, CUT_ALLOWANCE);
+  const M1_process = M1in + M1_cut;
+  const M1_ok      = M1_process >= MIN_GRIP;
+
+  // rB grip: compensate with CUT_ALLOWANCE if short
+  const rB_gap     = Math.max(0, MIN_GRIP - rBin);
+  const rB_cut     = Math.min(rB_gap, CUT_ALLOWANCE);
+  const rB_process = rBin + rB_cut;
+  const rB_ok      = rBin === 0 || rB_process >= MIN_GRIP;
+
+  // Collision: first bend can physically block second at high angle + short L
+  const collisionRisk = A > 45 && L < 60;
+
+  return {
+    method, tightFeasible,
+    L_tight_geom: Math.round(L_tight_geom),
+    D_theoretical: D_theo, D_practical,
+    M1_cut, M1_process, M1_ok,
+    rB_cut, rB_process, rB_ok,
+    collisionRisk
+  };
+}
+
 function sbToggleAutoFix(show) {
   const btn = document.getElementById('sb-autofix');
   if (!btn) return;
@@ -6099,18 +6163,38 @@ function sbCalculate() {
     ? `<span id="sb-mismatch-badge" class="result-badge result-badge-warn visible">⚠ Fel böjradie — offseten blir fel och kopplingarna kan spännas. Ange faktisk CLR.</span>`
     : `<span id="sb-mismatch-badge" class="result-badge result-badge-warn"></span>`;
 
-  // 4e. Tight S-böj feasibility — practical clamp check
-  // minLForBend = L_tight = 2*CLR*tan(A/2): smallest possible L (bend zones meet)
-  // If L_tight < SB_CLAMP_MIN the clamp cannot grip for the second bend → tight is not physically feasible
-  const tightFeasible = minLForBend >= SB_CLAMP_MIN;
+  // 4e. Fromax central rule engine — physics + process validation
+  const proc = frValidate({ A, clr, D, M1in: M1, L, rBin: rB });
+
   const tightWarnEl = document.getElementById('sb-tight-warn');
   if (tightWarnEl) {
-    if (!tightFeasible) {
-      tightWarnEl.textContent = `⚠ Tight bock ej genomförbar vid ${A}° — klonen har bara ${Math.round(minLForBend)} mm att gripa (behöver ${SB_CLAMP_MIN} mm). Standardmetod: böj M1, vänd röret, böj M2 med ${Math.round(L)} mm mellanrum.`;
+    if (!proc.tightFeasible) {
+      tightWarnEl.textContent = `⚠ Tight bock ej genomförbar vid ${A}° — klonen har bara ${proc.L_tight_geom} mm att gripa (behöver ${MIN_GRIP} mm). Standardmetod: böj M1, vänd röret, böj M2 med ${Math.round(L)} mm mellanrum.`;
       tightWarnEl.classList.add('visible');
     } else {
       tightWarnEl.classList.remove('visible');
     }
+  }
+
+  const procEl = document.getElementById('sb-process-card');
+  if (procEl) {
+    const methodLabel = proc.method === 'tight' ? 'Tight S-böj' : 'Standard S-böj (vänd röret)';
+    let html = `<div class="proc-method">${methodLabel}</div>`;
+    html += `<div class="proc-row">Avstånd mellan böjar (L): <strong>${Math.round(L)} mm</strong></div>`;
+    if (proc.M1_cut > 0) {
+      html += `<div class="proc-row proc-cut">Addera ${proc.M1_cut} mm för grepp vid M1 — kapa bort efter bockning</div>`;
+    }
+    if (proc.rB_cut > 0) {
+      html += `<div class="proc-row proc-cut">Addera ${proc.rB_cut} mm för grepp vid svansen — kapa bort efter bockning</div>`;
+    }
+    if (proc.D_practical !== null) {
+      html += `<div class="proc-row proc-info">Praktisk offset vid tight ${A}°: ≈ ${Math.round(proc.D_practical)} mm (teoretisk: ${Math.round(proc.D_theoretical)} mm)</div>`;
+    }
+    if (proc.collisionRisk) {
+      html += `<div class="proc-row proc-collision">⚠ Risk för kollision — ${A}° med ${Math.round(L)} mm mellanrum, böj 1 kan ta emot vid böj 2</div>`;
+    }
+    procEl.innerHTML = html;
+    procEl.classList.add('visible');
   }
 
   // Stage 5: render results
@@ -6120,7 +6204,7 @@ function sbCalculate() {
   document.getElementById('sb-cut').textContent   = Math.round(cut);
   document.getElementById('sb-d-out').textContent = Math.round(D);
   document.getElementById('sb-L-out').textContent = Math.round(L);
-  sbLastSummary = { cut, M1, M2, A, D, L, tightFeasible };
+  sbLastSummary = { cut, M1, M2, A, D, L, tightFeasible: proc.tightFeasible };
   sbUpdateSimpleCard(sbLastSummary);
 
   // Reference strip — RULE: reference must exist in result zone
