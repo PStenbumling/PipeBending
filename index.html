@@ -1345,6 +1345,23 @@
   .proc-collision { color: var(--danger); }
   .proc-info { color: var(--text-dim); }
 
+  /* ── Streck Mode ── */
+  .sb-streck-only { display: none; }
+  .sb-streck-result {
+    display: none; background: #0d1a14; border: 1px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin-bottom: 12px;
+  }
+  .sb-streck-result.visible { display: block; }
+  .streck-headline { font-size: 1.4rem; font-weight: bold; color: var(--accent); margin-bottom: 4px; }
+  .streck-offset { font-size: 1rem; color: var(--text); margin-bottom: 8px; }
+  .streck-approx { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px; }
+  .streck-method { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 4px; }
+  .streck-L { font-size: 0.85rem; color: var(--text); margin-bottom: 4px; }
+  .streck-instruction { font-size: 0.85rem; color: var(--accent); margin: 8px 0 6px; font-weight: bold; }
+  .streck-cut { font-size: 0.82rem; color: #f0a500; margin-top: 6px; }
+  .streck-collision { font-size: 0.82rem; color: var(--danger); margin-top: 6px; }
+  .streck-fail, .streck-hint { font-size: 0.85rem; color: var(--text-dim); }
+
   #takoffset-section { display: none; }
   #takoffset-results  { display: none; }
   #takror-section { display: none; }
@@ -2261,6 +2278,7 @@
       <div id="sb-intent" class="sb-intent"></div>
       <div class="sb-mode-toggle" id="sb-mode-toggle">
         <button type="button" class="sbm-btn active" data-sbmode="simple" onclick="sbSetMode('simple')">Enkelt</button>
+        <button type="button" class="sbm-btn" data-sbmode="streck" onclick="sbSetMode('streck')">Streck</button>
         <button type="button" class="sbm-btn" data-sbmode="advanced" onclick="sbSetMode('advanced')">Avancerat</button>
       </div>
       <div class="panel-title">Indata — S-böj (parallellförskjutning)</div>
@@ -2278,7 +2296,7 @@
           </div>
           <input type="hidden" id="sb-diam" value="12">
         </div>
-        <div class="field">
+        <div class="field sb-not-streck">
           <label>Böjvinkel</label>
           <div class="mode-toggle sb-angle-toggle">
             <button type="button" class="mode-btn" onclick="sbSetAngle(30,this);sbLiveUpdate()">30°</button>
@@ -2310,13 +2328,13 @@
           <div id="sb-offset-angle-hint" class="hint-warn"></div>
           <div id="sb-offset-clr-hint" class="hint-danger"></div>
         </div>
-        <div class="field">
+        <div class="field sb-not-streck">
           <label for="sb-m1">Rör före M1</label>
           <input type="number" id="sb-m1" value="100" min="0" step="1" oninput="sbLiveUpdate()">
           <div class="hint">Rörände → första böjmärket [mm] (kan lämnas tomt = 0)</div>
           <div id="sb-m1-hint" class="hint-danger"></div>
         </div>
-        <div class="field">
+        <div class="field sb-not-streck">
           <label for="sb-end">Rör efter M2</label>
           <input type="number" id="sb-end" value="100" min="0" step="1" oninput="sbLiveUpdate()">
           <div class="hint">Böjmärke M2 → rörände [mm]</div>
@@ -2328,10 +2346,12 @@
         <button type="button" class="sb-example-btn" onclick="sbLoadExample()">Testa med exempelmått</button>
       </div>
 
-      <button type="button" class="calc-btn" onclick="sbCalculate()">▶ BERÄKNA S-BÖJ</button>
+      <button type="button" class="calc-btn sb-not-streck" onclick="sbCalculate()">▶ BERÄKNA S-BÖJ</button>
+      <button type="button" class="calc-btn sb-streck-only" onclick="sbStreckCalc()">▶ HITTA STRECK</button>
     </div>
 
     <div id="sbend-results">
+      <div id="sb-streck-result" class="sb-streck-result sb-streck-only"></div>
       <div id="sb-simple-card" class="sb-simple-card sb-simple-only">
         <div class="sbsc-row"><span class="sbsc-label">Kapa röret till</span><span class="sbsc-val" id="sbsc-cut">—</span><span class="sbsc-unit">mm</span></div>
         <div class="sbsc-row"><span class="sbsc-label">Märk M1 från referensänden</span><span class="sbsc-val" id="sbsc-m1">—</span><span class="sbsc-unit">mm</span></div>
@@ -5783,16 +5803,98 @@ function sbUpdateSimpleCard(summary) {
   card.classList.add('visible');
 }
 
+// ── Fromax Streck Table (empirical) ──────────────────────────────────────────
+// Maps number of marks on Fromax No.55 bender arm to offset range and angle equiv.
+const FROMAX_STRECK = {
+  12: [
+    { streck: 1, offset_mid: 15, offset_min: 12, offset_max: 18, offset_label: '~15',    angle_equiv: 35 },
+    { streck: 2, offset_mid: 30, offset_min: 25, offset_max: 35, offset_label: '~30',    angle_equiv: 50 },
+    { streck: 3, offset_mid: 47, offset_min: 43, offset_max: 53, offset_label: '~45–50', angle_equiv: 62 },
+  ],
+  15: [
+    { streck: 1, offset_mid: 20, offset_min: 17, offset_max: 24, offset_label: '~20',    angle_equiv: 35 },
+    { streck: 2, offset_mid: 40, offset_min: 35, offset_max: 46, offset_label: '~40',    angle_equiv: 50 },
+    { streck: 3, offset_mid: 60, offset_min: 54, offset_max: 67, offset_label: '~60',    angle_equiv: 62 },
+  ]
+};
+
 function sbSetMode(mode) {
   sbMode = mode;
   sessionStorage.setItem('sb_ui_mode', mode);
+  const isAdvanced = mode === 'advanced';
+  const isStreck   = mode === 'streck';
   document.querySelectorAll('#sbend-section .sb-advanced-only').forEach(el =>
-    el.classList.toggle('sb-hidden', mode === 'simple'));
+    el.classList.toggle('sb-hidden', !isAdvanced));
   document.querySelectorAll('#sbend-section .sb-simple-only').forEach(el =>
-    el.classList.toggle('sb-hidden', mode === 'advanced'));
+    el.classList.toggle('sb-hidden', isAdvanced || isStreck));
+  document.querySelectorAll('#sbend-section .sb-not-streck').forEach(el =>
+    el.classList.toggle('sb-hidden', isStreck));
+  document.querySelectorAll('#sbend-section .sb-streck-only').forEach(el =>
+    el.classList.toggle('sb-hidden', !isStreck));
   document.querySelectorAll('.sbm-btn').forEach(btn =>
     btn.classList.toggle('active', btn.dataset.sbmode === mode));
+  if (!isStreck) {
+    const sr = document.getElementById('sb-streck-result');
+    if (sr) { sr.innerHTML = ''; sr.classList.remove('visible'); }
+  }
   sbUpdateSimpleCard(sbLastSummary);
+}
+
+function sbStreckCalc() {
+  const D_target = parseFloat(document.getElementById('sb-offset').value) || 0;
+  const size     = parseFloat(document.getElementById('sb-diam').value)   || 12;
+  const resEl    = document.getElementById('sb-streck-result');
+  if (!resEl) return;
+
+  if (!D_target || D_target < 5) {
+    resEl.innerHTML = '<div class="streck-hint">Ange önskad förflyttning i sidmått-fältet ovan.</div>';
+    resEl.classList.add('visible');
+    return;
+  }
+
+  const table     = FROMAX_STRECK[size] || FROMAX_STRECK[12];
+  const maxOffset = table[table.length - 1].offset_max;
+
+  if (D_target > maxOffset + 15) {
+    resEl.innerHTML = `<div class="streck-fail">Offset ${D_target} mm är utanför strecklägets räckvidd (max ~${maxOffset} mm).<br><strong>Växla till Avancerat läge</strong> för exakt beräkning.</div>`;
+    resEl.classList.add('visible');
+    return;
+  }
+
+  // Nearest streck
+  let best = table[0];
+  let bestDiff = Infinity;
+  for (const entry of table) {
+    const diff = Math.abs(D_target - entry.offset_mid);
+    if (diff < bestDiff) { bestDiff = diff; best = entry; }
+  }
+
+  const clr = FROMAX_CLR[size] || 43;
+  const A   = best.angle_equiv;
+  const rad = A * Math.PI / 180;
+  const L   = D_target / Math.sin(rad);
+
+  const proc     = frValidate({ A, clr, D: D_target, M1in: MIN_GRIP, L, rBin: MIN_GRIP });
+  const isInRange = D_target >= best.offset_min && D_target <= best.offset_max;
+  const methodTxt = proc.tightFeasible ? 'Tight S-böj möjlig' : 'Standard S-böj (vänd röret)';
+
+  let html = `<div class="streck-headline">${best.streck} streck per böj</div>`;
+  html += `<div class="streck-offset">Ger ca ${best.offset_label} mm offset</div>`;
+  if (!isInRange) {
+    html += `<div class="streck-approx">Närmsta inställning är ${best.streck} streck (${best.offset_label} mm) — ditt mått ${D_target} mm interpoleras.</div>`;
+  }
+  html += `<div class="streck-method">${methodTxt}</div>`;
+  html += `<div class="streck-L">Avstånd mellan böjar: ${Math.round(L)} mm</div>`;
+  html += `<div class="streck-instruction">Böj M1 → vänd röret → böj M2 med ${Math.round(L)} mm mellanrum</div>`;
+  if (proc.M1_cut > 0) {
+    html += `<div class="streck-cut">Addera ${proc.M1_cut} mm extra för grepp — kapa bort efter bockning</div>`;
+  }
+  if (proc.collisionRisk) {
+    html += `<div class="streck-collision">⚠ Risk för kollision vid denna vinkel — kontrollera i Avancerat läge</div>`;
+  }
+
+  resEl.innerHTML = html;
+  resEl.classList.add('visible');
 }
 
 function sbSetPipeSize(size) {
