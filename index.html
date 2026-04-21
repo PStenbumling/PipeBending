@@ -1346,7 +1346,7 @@
   .proc-info { color: var(--text-dim); }
 
   /* ── Streck Mode ── */
-  .sb-streck-only { display: none; }
+  /* .sb-streck-only visibility controlled by sb-hidden class via sbSetMode */
   .sb-streck-result {
     display: none; background: #0d1a14; border: 1px solid var(--accent);
     border-radius: 8px; padding: 16px 18px; margin-bottom: 12px;
@@ -2347,11 +2347,11 @@
       </div>
 
       <button type="button" class="calc-btn sb-not-streck" onclick="sbCalculate()">▶ BERÄKNA S-BÖJ</button>
-      <button type="button" class="calc-btn sb-streck-only" onclick="sbStreckCalc()">▶ HITTA STRECK</button>
+      <button type="button" class="calc-btn sb-streck-only sb-hidden" onclick="sbStreckCalc()">▶ HITTA STRECK</button>
     </div>
 
     <div id="sbend-results">
-      <div id="sb-streck-result" class="sb-streck-result sb-streck-only"></div>
+      <div id="sb-streck-result" class="sb-streck-result sb-streck-only sb-hidden"></div>
       <div id="sb-simple-card" class="sb-simple-card sb-simple-only">
         <div class="sbsc-row"><span class="sbsc-label">Kapa röret till</span><span class="sbsc-val" id="sbsc-cut">—</span><span class="sbsc-unit">mm</span></div>
         <div class="sbsc-row"><span class="sbsc-label">Märk M1 från referensänden</span><span class="sbsc-val" id="sbsc-m1">—</span><span class="sbsc-unit">mm</span></div>
